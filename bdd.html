@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Base de Données — NEXUS</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <div class="container container-narrow">
+
+    <div class="topbar">
+      <a href="index.html" class="back-link">← NEXUS</a>
+      <div class="brand">URBIZ · Base de Données</div>
+    </div>
+
+    <h1>Base de Données</h1>
+    <p class="subtitle" style="margin-bottom:28px;">Synchronisation · Maintenance</p>
+
+    <div class="card action-panel">
+      <h2>Synchronisation</h2>
+      <p class="section-desc">
+        Déclenche la mise à jour des bases de données depuis les sources connectées.
+        L'opération est exécutée en temps réel via n8n.
+      </p>
+
+      <div class="action-grid">
+        <button class="action-btn" onclick="runBDD('freelances')">
+          <span class="btn-icon">👤</span>
+          <span class="btn-label">Maj Freelances</span>
+        </button>
+
+        <button class="action-btn" onclick="runBDD('clients')">
+          <span class="btn-icon">🏢</span>
+          <span class="btn-label">Maj Clients</span>
+        </button>
+
+        <button class="action-btn action-btn-primary" onclick="runBDD('both')">
+          <span class="btn-icon">⚡</span>
+          <span class="btn-label">Maj Complète</span>
+        </button>
+      </div>
+    </div>
+
+    <div id="bddResult" class="result-message" style="display:none;"></div>
+
+  </div>
+
+  <script src="assets/bdd.js"></script>
+</body>
+</html>
