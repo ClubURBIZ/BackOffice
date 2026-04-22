@@ -5,23 +5,23 @@ const ENDPOINTS = {
 };
 
 const AREAS = { A:'Planifier', B:'Développer', C:'Gérer', D:'Exploiter', E:'Faciliter' };
-const CONF_FR = { high:'Haute', medium:'Moyenne', low:'Faible' };
 
 let currentArch = 'p34';
-let _d = null;
+let allProfiles = [];
+let allNotions  = [];
 
-// ── ARCH SELECTOR ──────────────────────────────────────────────────────────
+/* ── ARCH SELECTOR ── */
 function selectArch(btn, arch) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
   currentArch = arch;
   document.getElementById('cvResult').style.display    = 'none';
   document.getElementById('simpleResult').style.display = 'none';
-  document.getElementById('statusMessage').innerText    = '';
-  document.getElementById('statusMessage').className   = 'status-message';
+  const sm = document.getElementById('statusMessage');
+  sm.innerText = ''; sm.className = 'status-message';
 }
 
-// ── DOM REFS ───────────────────────────────────────────────────────────────
+/* ── DOM ELEMENTS ── */
 const uploadBtn       = document.getElementById('uploadBtn');
 const fileInput       = document.getElementById('fileInput');
 const fileLabel       = document.getElementById('fileLabel');
@@ -35,43 +35,40 @@ fileInput.addEventListener('change', () => {
   if (!f) return;
   fileLabel.innerText       = 'Fichier sélectionné ✓';
   fileNameDisplay.innerText = f.name;
-  statusMessage.innerText   = 'Prêt à analyser';
-  statusMessage.className   = 'status-message info';
+  setStatus('Prêt à analyser', 'info');
 });
 
-// ── UPLOAD ─────────────────────────────────────────────────────────────────
 uploadBtn.addEventListener('click', async () => {
   const f = fileInput.files[0];
-  if (!f) {
-    statusMessage.innerText = "Sélectionne un fichier PDF d'abord";
-    statusMessage.className = 'status-message error';
-    return;
-  }
-  const form = new FormData();
-  form.append('data', f);
+  if (!f) { setStatus('Sélectionne un fichier PDF d\'abord', 'error'); return; }
+
+  const fd = new FormData();
+  fd.append('data', f);
+
   document.getElementById('cvResult').style.display    = 'none';
   document.getElementById('simpleResult').style.display = 'none';
   loaderWrap.classList.add('active');
   uploadBtn.disabled = true;
-  const steps = ['Extraction du texte...','Analyse des compétences...','Structuration du profil...','Finalisation...'];
-  let i = 0;
-  const iv = setInterval(() => { loaderText.innerText = steps[i++ % steps.length]; }, 1400);
+
+  const steps = ['Extraction du texte…', 'Analyse des compétences…', 'Structuration du profil…', 'Finalisation…'];
+  let si = 0;
+  const iv = setInterval(() => { loaderText.innerText = steps[si++ % steps.length]; }, 1400);
+
   try {
-    const res  = await fetch(ENDPOINTS[currentArch], { method:'POST', body:form });
-    const text = await res.text();
+    const res  = await fetch(ENDPOINTS[currentArch], { method: 'POST', body: fd });
+    const txt  = await res.text();
     let data;
-    try { data = JSON.parse(text); } catch { data = { raw: text }; }
+    try { data = JSON.parse(txt); } catch { data = { raw: txt }; }
+
     if (currentArch === 'p34') {
       renderP34(data);
     } else {
       document.querySelector('.simple-result pre').innerText = JSON.stringify(data, null, 2);
       document.getElementById('simpleResult').style.display = 'block';
     }
-    statusMessage.innerText = 'Analyse terminée ✓';
-    statusMessage.className = 'status-message success';
+    setStatus('Analyse terminée ✓', 'success');
   } catch (e) {
-    statusMessage.innerText = 'Erreur : ' + e.message;
-    statusMessage.className = 'status-message error';
+    setStatus('Erreur : ' + e.message, 'error');
   } finally {
     clearInterval(iv);
     loaderWrap.classList.remove('active');
@@ -79,223 +76,273 @@ uploadBtn.addEventListener('click', async () => {
   }
 });
 
-// ── P3/P4 ENTRY ────────────────────────────────────────────────────────────
+function setStatus(msg, cls) {
+  statusMessage.innerText = msg;
+  statusMessage.className = 'status-message ' + cls;
+}
+
+function qs(id) { return document.getElementById(id); }
+
+/* ════════════════════════════════════════
+   P3 / P4  RENDERING
+   ════════════════════════════════════════ */
+
 function renderP34(raw) {
-  _d = Array.isArray(raw) ? raw[0] : raw;
-  const profiles = _d.profiles || [];
-  // Profile selector
-  document.getElementById('profileSelector').innerHTML = profiles.map((p, idx) => `
-    <button class="prof-tab ${idx === 0 ? 'active' : ''}" onclick="selectProfile(${idx})">
-      <span class="prof-rank">#${p.rank}</span>
-      <span class="prof-title">${p.title}</span>
-      <span class="prof-score score-${p.scores.confidence}">${p.scores.final.toFixed(1)}</span>
-      <span class="prof-senior">${p.analysis.seniority.label}</span>
+  const root  = Array.isArray(raw) ? raw[0] : raw;
+  allProfiles = root.profiles         || [];
+  allNotions  = root.freelance_notions || [];
+
+  if (!allProfiles.length) {
+    setStatus('Aucun profil retourné par le webhook', 'error');
+    return;
+  }
+
+  /* Profile selector tabs */
+  qs('profileSelector').innerHTML = allProfiles.map((p, i) => `
+    <button class="prof-tab${i === 0 ? ' active' : ''}" onclick="selectProfile(${i})">
+      <div class="prof-tab-score">${p.score_final != null ? p.score_final : '—'}%</div>
+      <div class="prof-tab-name">${p.profile_name || '—'}</div>
+      <div class="prof-tab-meta">
+        <span class="prof-tab-code">${p.profile_code || ''}</span>
+        <span class="prof-tab-seniority">${p.seniority || ''}</span>
+      </div>
     </button>
   `).join('');
-  renderProfile(profiles[0]);
+
   document.getElementById('cvResult').style.display = 'block';
-  openFirstAcc();
+  renderProfile(0);
+  document.querySelectorAll('.accordion').forEach(a => a.classList.remove('open'));
 }
 
 function selectProfile(idx) {
   document.querySelectorAll('.prof-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
-  renderProfile(_d.profiles[idx]);
-  openFirstAcc();
+  renderProfile(idx);
+  document.querySelectorAll('.accordion').forEach(a => a.classList.remove('open'));
 }
 
-function openFirstAcc() {
-  setTimeout(() => {
-    const h = document.querySelector('.acc-header');
-    if (h && !h.classList.contains('open')) toggleAcc(h);
-  }, 30);
-}
+function renderProfile(idx) {
+  const p = allProfiles[idx];
+  if (!p) return;
 
-// ── PROFILE DETAIL ─────────────────────────────────────────────────────────
-function renderProfile(p) {
-  // Header
-  document.getElementById('phTitle').innerText    = p.title;
-  document.getElementById('phCode').innerText     = `Code CIGREF ${p.code}`;
-  document.getElementById('phConf').innerText     = `Confiance ${CONF_FR[p.scores.confidence] || p.scores.confidence}`;
-  document.getElementById('phSeniority').innerText= p.analysis.seniority.label;
-  document.getElementById('phQuadrant').innerText = p.analysis.quadrant.label;
-  document.getElementById('phQuadDesc').innerText = p.analysis.quadrant.description;
-  document.getElementById('phDims').innerHTML = [
-    { l:'D1 · CV',       v: p.scores.d1 },
-    { l:'D2 · Pratique', v: p.scores.d2 },
-    { l:'D3 · Notions',  v: p.scores.d3 }
-  ].map(d => `
+  /* Badges & title */
+  qs('phCode').innerText      = p.profile_code || '';
+  qs('phSeniority').innerText = p.seniority    || '';
+  qs('phConf').innerText      = confLabel(p.confidence);
+  qs('phTitle').innerText     = p.profile_name || '';
+  qs('phQuadDesc').innerText  = p.quadrant_description || p.context || '';
+
+  /* Score circle */
+  const score = p.score_final != null ? p.score_final : 0;
+  const r = 50, circ = 2 * Math.PI * r;
+  const circle = qs('phCircle');
+  circle.style.strokeDasharray  = circ;
+  circle.style.strokeDashoffset = circ * (1 - score / 100);
+  qs('phCircleText').innerText  = score + '%';
+
+  /* D1 / D2 / D3 dimension bars */
+  const dims = [
+    { l: 'D1', v: p.score_d1 != null ? p.score_d1 : p.d1 },
+    { l: 'D2', v: p.score_d2 != null ? p.score_d2 : p.d2 },
+    { l: 'D3', v: p.score_d3 != null ? p.score_d3 : p.d3 }
+  ].filter(d => d.v != null);
+
+  qs('phDims').innerHTML = dims.map((d, i) => `
     <div class="dim-row">
       <span class="dim-lbl">${d.l}</span>
-      <div class="mini-bar"><div class="mini-fill" style="width:${d.v}%"></div></div>
-      <span class="dim-val">${d.v.toFixed(0)}</span>
+      <div class="mini-bar"><div class="mini-fill fill-d${i + 1}" style="width:${d.v}%"></div></div>
+      <span class="dim-val">${d.v}%</span>
     </div>
   `).join('');
-  // Score circle
-  const r = 42, c = 2 * Math.PI * r;
-  const circle = document.getElementById('phCircle');
-  circle.style.strokeDasharray  = c;
-  circle.style.strokeDashoffset = c - (p.scores.final / 100) * c;
-  document.getElementById('phCircleText').innerText = p.scores.final.toFixed(0);
-  // Sections
-  document.getElementById('secMission').innerHTML      = renderMission(p.mission, p.deliverables);
-  document.getElementById('secActivities').innerHTML   = renderActivities(p.activities);
-  document.getElementById('secCompetencies').innerHTML = renderCompetencies(p.competencies);
-  document.getElementById('secNotions').innerHTML      = renderNotions(p.notions_transversales);
-  // Close all accordions
-  document.querySelectorAll('.acc-header').forEach(h => {
-    h.classList.remove('open');
-    h.nextElementSibling.style.display = 'none';
-  });
+
+  /* Section content */
+  qs('secMission').innerHTML      = renderMission(p.mission);
+  qs('secActivities').innerHTML   = renderActivities(p.activities     || []);
+  qs('secCompetencies').innerHTML = renderCompetencies(p.competencies || []);
+  qs('secNotions').innerHTML      = renderNotions(allNotions);
 }
 
-// ── MISSION ────────────────────────────────────────────────────────────────
-function renderMission(m, del) {
-  return `
-    <p class="sec-text">${m.description}</p>
-    <div class="ms-row"><span>Score mission</span><strong>${m.score}%</strong></div>
-    <div class="prog-bar"><div class="prog-fill" style="width:${m.score}%"></div></div>
-    ${del?.items.length ? `
-      <div class="mt-block">
-        <div class="block-label">Livrables (${del.covered}/${del.total})</div>
-        <ul class="item-list">${del.items.map(d => `<li>${d.title}</li>`).join('')}</ul>
-      </div>` : ''}
-  `;
+function confLabel(c) {
+  const m = { high: '✓ Haute confiance', medium: '~ Confiance moyenne', low: '⚠ Faible confiance' };
+  return m[c] || (c || '');
 }
 
-// ── ACTIVITIES ─────────────────────────────────────────────────────────────
-function renderActivities(act) {
-  return act.items.map(a => `
+/* ── MISSION ── */
+function renderMission(m) {
+  if (!m) return '<p class="empty-state">Non disponible</p>';
+  const score = m.score != null ? m.score : m.matching_score;
+  const text  = m.text || m.description || m.summary || '';
+  const dl    = m.deliverables || [];
+
+  return [
+    score != null ? `
+      <div class="ms-score-row">
+        <span class="ms-score-lbl">Score d'adéquation</span>
+        <span class="ms-score-val">${score}%</span>
+      </div>
+      <div class="prog-bar"><div class="prog-fill" style="width:${score}%"></div></div>` : '',
+    text ? `<p class="ms-text">${text}</p>` : '',
+    dl.length ? `
+      <div class="mt-block-label">Livrables</div>
+      <ul class="item-list">${dl.map(d => `<li>${d}</li>`).join('')}</ul>` : ''
+  ].join('');
+}
+
+/* ── ACTIVITIES ── */
+function renderActivities(acts) {
+  if (!acts.length) return '<p class="empty-state">Non disponible</p>';
+  return acts.map(a => `
     <div class="act-block">
-      <div class="act-title">${a.title}</div>
-      <ul class="item-list">${a.tasks.map(t => `<li>${t}</li>`).join('')}</ul>
+      <div class="act-title">${a.title || a.activity_title || a.activity || ''}</div>
+      <ul class="item-list">${(a.tasks || []).map(t => `<li>${t}</li>`).join('')}</ul>
     </div>
   `).join('');
 }
 
-// ── COMPETENCIES ───────────────────────────────────────────────────────────
-function renderCompetencies(comp) {
-  const by = { A:[], B:[], C:[], D:[], E:[] };
-  comp.items.forEach(s => { const k = s.skill_id[0]; if (by[k]) by[k].push(s); });
-  const first = Object.entries(by).find(([,v]) => v.length)?.[0] || 'A';
+/* ── COMPETENCIES ── */
+function renderCompetencies(comps) {
+  if (!comps.length) return '<p class="empty-state">Non disponible</p>';
+
+  const groups = {};
+  comps.forEach(c => {
+    const key = ((c.area || c.code || '?')[0]).toUpperCase();
+    (groups[key] = groups[key] || []).push(c);
+  });
+  const letters = Object.keys(groups).sort();
+  const first   = letters[0];
+
+  const summary = comps.map(c => {
+    const g   = c.gap != null ? c.gap : (c.freelance_level - c.required_level);
+    const cls = g >= 0 ? 'c-strong' : (g >= -1 ? 'c-adequate' : 'c-weak');
+    return `<span class="cbadge ${cls}">${c.code || c.name}</span>`;
+  }).join('');
+
+  const tabs = letters.map(l => `
+    <button class="ctab${l === first ? ' active' : ''}" onclick="switchComp(this,'${l}')">
+      ${l} · ${AREAS[l] || l}
+    </button>`).join('');
+
+  const panels = letters.map(l => `
+    <div class="cpanel${l === first ? ' active' : ''}" data-area="${l}">
+      ${groups[l].map(renderSkill).join('')}
+    </div>`).join('');
+
   return `
-    <div class="comp-summary">
-      ${comp.strong  ? `<span class="cbadge c-strong">✓ ${comp.strong} fort${comp.strong>1?'s':''}</span>` : ''}
-      ${comp.weak    ? `<span class="cbadge c-weak">~ ${comp.weak} faible${comp.weak>1?'s':''}</span>` : ''}
-      ${comp.missing ? `<span class="cbadge c-missing">✗ ${comp.missing} manquant${comp.missing>1?'s':''}</span>` : ''}
-    </div>
-    <div class="ctabs">
-      ${Object.entries(AREAS).map(([code, name]) => `
-        <button class="ctab${code===first?' active':''}" onclick="switchComp(this,'${code}')" data-area="${code}">
-          ${name} <span class="ctab-n">${by[code].length}</span>
-        </button>`).join('')}
-    </div>
-    ${Object.keys(AREAS).map(code => `
-      <div class="cpanel" id="cp_${code}" ${code!==first?'style="display:none"':''}>
-        ${by[code].length
-          ? by[code].map(s => renderSkill(s)).join('')
-          : '<p class="empty-state">Aucune compétence dans cette catégorie.</p>'}
-      </div>`).join('')}
+    <div class="comp-summary">${summary}</div>
+    <div class="ctabs">${tabs}</div>
+    <div class="cpanels">${panels}</div>
   `;
 }
 
-function switchComp(btn, code) {
-  const wrap = btn.closest('.acc-body');
-  wrap.querySelectorAll('.ctab').forEach(t => t.classList.remove('active'));
+function switchComp(btn, letter) {
+  const root = btn.closest('.acc-inner');
+  root.querySelectorAll('.ctab').forEach(t  => t.classList.remove('active'));
+  root.querySelectorAll('.cpanel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
-  wrap.querySelectorAll('.cpanel').forEach(p => p.style.display = 'none');
-  document.getElementById('cp_' + code).style.display = 'block';
+  root.querySelector(`.cpanel[data-area="${letter}"]`).classList.add('active');
 }
 
 function renderSkill(s) {
-  const M = { strong:{l:'Fort',c:'c-strong'}, adequate:{l:'Adéquat',c:'c-adequate'}, weak:{l:'Faible',c:'c-weak'}, missing:{l:'Manquant',c:'c-missing'} };
-  const st = M[s.status] || M.weak;
-  const cv = s.cv_estimated_level || 0;
-  const ex = s.expected_level || 0;
+  const fl  = s.freelance_level ?? 0;
+  const rl  = s.required_level  ?? 0;
+  const g   = fl - rl;
+  const cls = g >= 0 ? 'c-strong' : (g >= -1 ? 'c-adequate' : 'c-weak');
+  const gtxt = g >= 0 ? `+${g}` : `${g}`;
+
   return `
     <div class="skill-card">
       <div class="sk-head" onclick="toggleSkill(this)">
-        <span class="sk-code">${s.code}</span>
-        <span class="sk-name">${s.title}</span>
-        <span class="cbadge ${st.c} sk-st">${st.l}</span>
-        <span class="sk-lv">Niv. CV ${cv||'—'} / Att. ${ex}</span>
-        <span class="sk-chev">›</span>
+        <div class="sk-info">
+          <span class="sk-code">${s.code || ''}</span>
+          <span class="sk-name">${s.name || s.skill_name || ''}</span>
+        </div>
+        <div class="sk-right">
+          <div class="dots-row">${ldots(fl, rl, 5)}</div>
+          <span class="cbadge ${cls}">${gtxt}</span>
+          <span class="sk-chev">▾</span>
+        </div>
       </div>
-      <div class="sk-body" style="display:none">
-        <div class="lv-cmp">
+      <div class="sk-body">
+        <div class="sk-body-inner">
           <div class="lv-row">
-            <span class="lv-lbl">Niveau CV</span>
-            <div class="dots-row">${ldots(cv, ex, 5)}</div>
-            <span class="lv-num">${cv||'—'}/5</span>
+            <span class="lv-lbl">Niveau candidat</span>
+            <div class="dots-row">${levelDots(fl, 5, 'dot-teal')}</div>
+            <span class="lv-num">${fl}/5</span>
           </div>
           <div class="lv-row">
-            <span class="lv-lbl">Attendu</span>
-            <div class="dots-row">${ldots(ex, ex, 5, 'blue')}</div>
-            <span class="lv-num">${ex}/5</span>
+            <span class="lv-lbl">Niveau requis</span>
+            <div class="dots-row">${levelDots(rl, 5, 'dot-blue')}</div>
+            <span class="lv-num">${rl}/5</span>
+          </div>
+          ${s.description ? `<p class="sk-desc">${s.description}</p>` : ''}
+          ${s.knowledge && s.knowledge.length ? `
+            <div class="ka-section">
+              <div class="ka-lbl">Savoirs</div>
+              <ul class="item-list">${s.knowledge.map(k => `<li>${k}</li>`).join('')}</ul>
+            </div>` : ''}
+          ${s.abilities && s.abilities.length ? `
+            <div class="ka-section">
+              <div class="ka-lbl">Savoir-faire</div>
+              <ul class="item-list">${s.abilities.map(a => `<li>${a}</li>`).join('')}</ul>
+            </div>` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* Compact level dots — colour indicates gap vs ok */
+function ldots(fl, rl, total) {
+  const ok = fl >= rl;
+  return Array.from({ length: total }, (_, i) =>
+    `<span class="dot ${i < fl ? (ok ? 'dot-teal' : 'dot-gap') : 'dot-empty'}"></span>`
+  ).join('');
+}
+
+/* Full level dots with explicit colour class */
+function levelDots(n, total, cls) {
+  return Array.from({ length: total }, (_, i) =>
+    `<span class="dot ${i < n ? cls : 'dot-empty'}"></span>`
+  ).join('');
+}
+
+function toggleSkill(head) { head.closest('.skill-card').classList.toggle('open'); }
+
+/* ── NOTIONS TRANSVERSALES ── */
+function renderNotions(notions) {
+  if (!notions || !notions.length) return '<p class="empty-state">Non disponible</p>';
+  return `<div class="notions-list">${notions.map(n => {
+    const fl = n.freelance_level != null ? n.freelance_level : (n.freelance ?? 0);
+    const el = n.expected_level  != null ? n.expected_level  : (n.expected  ?? 0);
+    const ok = fl >= el;
+    return `
+      <div class="notion-row">
+        <span class="notion-name">${n.notion_name || n.name || ''}</span>
+        <div class="notion-stars-wrap">
+          <div class="notion-stars-row">
+            <span class="notion-stars-lbl">Candidat</span>
+            ${nstars(fl, el, 5)}
+            <span class="notion-lv">${fl}/5</span>
+          </div>
+          <div class="notion-stars-row">
+            <span class="notion-stars-lbl">Attendu</span>
+            ${nstars(el, el, 5)}
+            <span class="notion-lv">${el}/5</span>
           </div>
         </div>
-        ${s.cv_level_description ? `<p class="sk-desc">${s.cv_level_description}</p>` : ''}
-        ${s.knowledge?.length ? `
-          <div class="ka-blk"><div class="ka-lbl">Connaissances</div>
-          <ul>${s.knowledge.map(k=>`<li>${k.description}</li>`).join('')}</ul></div>` : ''}
-        ${s.abilities?.length ? `
-          <div class="ka-blk"><div class="ka-lbl">Aptitudes</div>
-          <ul>${s.abilities.map(a=>`<li>${a.description}</li>`).join('')}</ul></div>` : ''}
-      </div>
-    </div>
-  `;
+        <span class="notion-badge ${ok ? 'n-ok' : 'n-gap'}">${ok ? '✓' : '△'}</span>
+      </div>`;
+  }).join('')}</div>`;
 }
 
-function ldots(filled, threshold, total, forceColor) {
-  return Array.from({length:total}, (_,i) => {
-    const cls = forceColor
-      ? (i < filled ? `dot-${forceColor}` : 'dot-empty')
-      : (i < filled ? 'dot-teal' : i < threshold ? 'dot-gap' : 'dot-empty');
-    return `<span class="dot ${cls}"></span>`;
+/* Stars: teal = ok/met, orange = gap, grey = empty */
+function nstars(filled, threshold, total) {
+  return Array.from({ length: total }, (_, i) => {
+    let cls;
+    if (i < filled) cls = filled >= threshold ? 'star-filled' : 'star-gap';
+    else cls = 'star-empty';
+    return `<span class="star ${cls}">★</span>`;
   }).join('');
 }
 
-function toggleSkill(head) {
-  const body = head.nextElementSibling;
-  const open = body.style.display !== 'none';
-  body.style.display = open ? 'none' : 'block';
-  head.querySelector('.sk-chev').style.transform = open ? '' : 'rotate(90deg)';
-}
-
-// ── NOTIONS TRANSVERSALES ──────────────────────────────────────────────────
-function renderNotions(n) {
-  return `
-    <div class="notions-sum">
-      <span class="cbadge c-strong">✓ ${n.matched} aligné${n.matched>1?'s':''}</span>
-      <span class="cbadge c-missing">⚠ ${n.gaps} écart${n.gaps>1?'s':''}</span>
-    </div>
-    <div class="notions-list">
-      ${n.items.map(x => `
-        <div class="notion-row">
-          <div class="notion-name">${x.label}</div>
-          <div class="dots-row">${ndots(x.freelance_level, x.expected_level)}</div>
-          <span class="notion-lv">${x.freelance_level}<span class="slash">/</span>${x.expected_level}</span>
-          <span class="notion-badge ${x.status==='ok'?'n-ok':'n-gap'}">${x.status==='ok'?'✓':'⚠'}</span>
-        </div>`).join('')}
-    </div>
-  `;
-}
-
-function ndots(freelance, expected) {
-  return Array.from({length:5}, (_,i) => {
-    const cls = i < freelance ? 'dot-teal' : i < expected ? 'dot-gap' : 'dot-empty';
-    return `<span class="dot ${cls}"></span>`;
-  }).join('');
-}
-
-// ── ACCORDION ──────────────────────────────────────────────────────────────
-function toggleAcc(h) {
-  const body = h.nextElementSibling;
-  const open = h.classList.contains('open');
-  document.querySelectorAll('.acc-header').forEach(x => {
-    x.classList.remove('open');
-    x.nextElementSibling.style.display = 'none';
-  });
-  if (!open) { h.classList.add('open'); body.style.display = 'block'; }
-}
-
-function toggleAccordion(h) { toggleAcc(h); }
+/* ── ACCORDION TOGGLE ── */
+function toggleAcc(h) { h.closest('.accordion').classList.toggle('open'); }
