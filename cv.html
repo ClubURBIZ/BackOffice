@@ -7,137 +7,152 @@
   <link rel="stylesheet" href="assets/styles.css">
 </head>
 <body>
-<div class="container container-narrow">
+  <div class="container container-narrow">
 
-  <div class="topbar">
-    <a href="index.html" class="back-link">← NEXUS</a>
-    <div class="brand">URBIZ · Normalisation CV</div>
-  </div>
-
-  <h1>Normalisation CV</h1>
-  <p class="subtitle" style="margin-bottom:28px;">Analyse · Structuration · Scoring</p>
-
-  <!-- ARCHITECTURE SELECTOR -->
-  <div class="card arch-card">
-    <h2>Pipeline d'analyse</h2>
-    <p class="section-desc">Sélectionne l'architecture de traitement à utiliser selon le niveau de détail souhaité.</p>
-    <div class="tabs">
-      <button class="tab" data-arch="p01" onclick="selectArch(this,'p01')">
-        <strong>P0 / P1</strong>
-        <span>Normalisation initiale</span>
-        <span>Upload brut du CV</span>
-      </button>
-      <button class="tab" data-arch="p2" onclick="selectArch(this,'p2')">
-        <strong>P2</strong>
-        <span>Normalisation enrichie</span>
-        <span>Extraction structurée</span>
-      </button>
-      <button class="tab active" data-arch="p34" onclick="selectArch(this,'p34')">
-        <strong>P3 / P4</strong>
-        <span>Profil complet</span>
-        <span>Score · Compétences · Notions</span>
-      </button>
+    <div class="topbar">
+      <a href="index.html" class="back-link">← NEXUS</a>
+      <div class="brand">URBIZ · Normalisation CV</div>
     </div>
-  </div>
 
-  <!-- UPLOAD -->
-  <div class="card upload-panel">
-    <div class="upload-box">
-      <label class="file-upload" for="fileInput">
-        <input type="file" id="fileInput" accept="application/pdf">
-        <span id="fileLabel">Choisir un fichier PDF</span>
-      </label>
-      <div id="fileNameDisplay" class="file-name">Aucun fichier sélectionné</div>
-      <button id="uploadBtn" class="primary-btn">Analyser le CV</button>
+    <h1>Normalisation CV</h1>
+    <p class="subtitle" style="margin-bottom:28px;">Analyse · Structuration · Scoring</p>
+
+    <!-- ARCHITECTURE SELECTOR -->
+    <div class="card arch-card">
+      <h2>Pipeline d'analyse</h2>
+      <p class="section-desc">Sélectionne l'architecture de traitement à utiliser selon le niveau de détail souhaité.</p>
+
+      <div class="tabs">
+        <button class="tab" data-arch="p01" onclick="selectArch(this, 'p01')">
+          <strong>P0 / P1</strong>
+          <span>Normalisation initiale</span>
+          <span>Upload brut du CV</span>
+        </button>
+
+        <button class="tab" data-arch="p2" onclick="selectArch(this, 'p2')">
+          <strong>P2</strong>
+          <span>Normalisation enrichie</span>
+          <span>Extraction structurée</span>
+        </button>
+
+        <button class="tab active" data-arch="p34" onclick="selectArch(this, 'p34')">
+          <strong>P3 / P4</strong>
+          <span>Profil complet</span>
+          <span>Score · Compétences · Expériences</span>
+        </button>
+      </div>
     </div>
-    <div id="statusMessage" class="status-message"></div>
-  </div>
 
-  <!-- LOADER -->
-  <div id="loaderWrap" class="loader-wrap">
-    <div class="loader"></div>
-    <div id="loaderText" class="loader-text">Analyse en cours…</div>
-  </div>
+    <!-- UPLOAD -->
+    <div class="card upload-panel">
+      <div class="upload-box">
+        <label class="file-upload" for="fileInput">
+          <input type="file" id="fileInput" accept="application/pdf">
+          <span id="fileLabel">Choisir un fichier PDF</span>
+        </label>
+        <div id="fileNameDisplay" class="file-name">Aucun fichier sélectionné</div>
+        <button id="uploadBtn" class="primary-btn">Analyser le CV</button>
+      </div>
+      <div id="statusMessage" class="status-message"></div>
+    </div>
 
-  <!-- SIMPLE RESULT (P0/P1, P2) -->
-  <div id="simpleResult" class="card simple-result" style="display:none;">
-    <h2>Réponse du pipeline</h2>
-    <pre></pre>
-  </div>
+    <!-- LOADER -->
+    <div id="loaderWrap" class="loader-wrap">
+      <div class="loader"></div>
+      <div id="loaderText" class="loader-text">Analyse en cours…</div>
+    </div>
 
-  <!-- FULL RESULT (P3/P4) -->
-  <div id="cvResult" style="display:none;">
+    <!-- SIMPLE RESULT (P0/P1, P2) -->
+    <div id="simpleResult" class="card simple-result" style="display:none;">
+      <h2>Réponse du pipeline</h2>
+      <pre></pre>
+    </div>
 
-    <!-- Profile selector -->
-    <div id="profileSelector" class="profile-selector"></div>
+    <!-- FULL RESULT (P3/P4) -->
+    <div id="cvResult" style="display:none;">
 
-    <!-- Profile header card -->
-    <div class="card prof-header">
-      <div class="ph-left">
-        <div id="phTitle" class="ph-title-text"></div>
-        <div id="phCode"  class="ph-code"></div>
-        <div class="ph-badges">
-          <span id="phConf"     class="cbadge c-strong"></span>
-          <span id="phSeniority"class="cbadge badge-neutral"></span>
-          <span id="phQuadrant" class="cbadge badge-quad"></span>
+      <!-- Profile selector — horizontal scroll row -->
+      <div class="card profile-selector-wrap">
+        <div class="ps-hint">Sélectionne un profil de correspondance</div>
+        <div id="profileSelector" class="profile-selector"></div>
+      </div>
+
+      <!-- Profile header — badges + title + score circle + D1/D2/D3 -->
+      <div class="card prof-header">
+        <div class="ph-left">
+          <div class="ph-badges">
+            <span id="phCode" class="ph-code"></span>
+            <span id="phSeniority" class="ph-seniority"></span>
+            <span id="phConf" class="ph-conf"></span>
+          </div>
+          <h2 id="phTitle" class="ph-title-text"></h2>
+          <p id="phQuadDesc" class="ph-quad-desc"></p>
+          <div id="phDims" class="ph-dims"></div>
         </div>
-        <div id="phQuadDesc" class="ph-quad-desc"></div>
-        <div id="phDims"     class="ph-dims"></div>
-      </div>
-      <div class="ph-right">
-        <div class="score-circle">
-          <svg viewBox="0 0 96 96">
-            <circle cx="48" cy="48" r="42"></circle>
-            <circle cx="48" cy="48" r="42" id="phCircle"></circle>
-          </svg>
-          <div id="phCircleText" class="score-text"></div>
+        <div class="ph-right">
+          <div class="score-circle-lg">
+            <svg viewBox="0 0 120 120">
+              <circle cx="60" cy="60" r="50"></circle>
+              <circle cx="60" cy="60" r="50" id="phCircle"></circle>
+            </svg>
+            <div id="phCircleText" class="score-text-lg"></div>
+          </div>
+          <div class="ph-score-label">Score global</div>
         </div>
       </div>
+
+      <!-- Accordion: Mission -->
+      <div class="accordion">
+        <button class="acc-header" onclick="toggleAcc(this)">
+          <span class="acc-icon">📋</span>
+          <span class="acc-title">Mission &amp; Contexte</span>
+          <span class="acc-chev">▼</span>
+        </button>
+        <div class="acc-body">
+          <div class="acc-inner" id="secMission"></div>
+        </div>
+      </div>
+
+      <!-- Accordion: Activities -->
+      <div class="accordion">
+        <button class="acc-header" onclick="toggleAcc(this)">
+          <span class="acc-icon">⚡</span>
+          <span class="acc-title">Activités &amp; Tâches</span>
+          <span class="acc-chev">▼</span>
+        </button>
+        <div class="acc-body">
+          <div class="acc-inner" id="secActivities"></div>
+        </div>
+      </div>
+
+      <!-- Accordion: Competencies -->
+      <div class="accordion">
+        <button class="acc-header" onclick="toggleAcc(this)">
+          <span class="acc-icon">🎯</span>
+          <span class="acc-title">Compétences</span>
+          <span class="acc-chev">▼</span>
+        </button>
+        <div class="acc-body">
+          <div class="acc-inner" id="secCompetencies"></div>
+        </div>
+      </div>
+
+      <!-- Accordion: Notions transversales -->
+      <div class="accordion">
+        <button class="acc-header" onclick="toggleAcc(this)">
+          <span class="acc-icon">⭐</span>
+          <span class="acc-title">Notions Transversales</span>
+          <span class="acc-chev">▼</span>
+        </button>
+        <div class="acc-body">
+          <div class="acc-inner" id="secNotions"></div>
+        </div>
+      </div>
+
     </div>
 
-    <!-- MISSION -->
-    <div class="accordion">
-      <div class="acc-header" onclick="toggleAccordion(this)">
-        <span>🎯&nbsp; Mission</span><span class="acc-chev">›</span>
-      </div>
-      <div class="acc-body">
-        <div id="secMission" class="acc-inner"></div>
-      </div>
-    </div>
+  </div>
 
-    <!-- ACTIVITÉS ET TÂCHES -->
-    <div class="accordion">
-      <div class="acc-header" onclick="toggleAccordion(this)">
-        <span>📋&nbsp; Activités et tâches</span><span class="acc-chev">›</span>
-      </div>
-      <div class="acc-body">
-        <div id="secActivities" class="acc-inner"></div>
-      </div>
-    </div>
-
-    <!-- COMPÉTENCES -->
-    <div class="accordion">
-      <div class="acc-header" onclick="toggleAccordion(this)">
-        <span>⚡&nbsp; Compétences</span><span class="acc-chev">›</span>
-      </div>
-      <div class="acc-body">
-        <div id="secCompetencies" class="acc-inner"></div>
-      </div>
-    </div>
-
-    <!-- NOTIONS TRANSVERSALES -->
-    <div class="accordion">
-      <div class="acc-header" onclick="toggleAccordion(this)">
-        <span>🌐&nbsp; Notions transversales</span><span class="acc-chev">›</span>
-      </div>
-      <div class="acc-body">
-        <div id="secNotions" class="acc-inner"></div>
-      </div>
-    </div>
-
-  </div><!-- #cvResult -->
-
-</div>
-<script src="assets/normalize.js"></script>
+  <script src="assets/normalize.js"></script>
 </body>
 </html>
