@@ -6,6 +6,21 @@ const ENDPOINTS = {
 
 const AREAS = { A:'Planifier', B:'Développer', C:'Gérer', D:'Exploiter', E:'Faciliter' };
 
+const LOAD_STEPS = [
+  'Extraction du CV brut via MISTRAL…',
+  'Analyse des métadonnées (nom, email, téléphone…)',
+  'Identification de vos compétences…',
+  'Analyse des compétences compatibles à votre CV…',
+  'Scoring de vos compétences…',
+  'Identification de votre métier…',
+  'Analyse des métiers compatibles à votre CV…',
+  'Scoring des métiers compatibles…',
+  'Identification des notions transversales…',
+  'Scoring global de votre CV…',
+  'Analyse du gap compétences ↔ métiers…',
+  'Finalisation…'
+];
+
 let currentArch = 'p34';
 let allProfiles = [];
 let allNotions  = [];
@@ -21,7 +36,7 @@ function selectArch(btn, arch) {
   sm.innerText = ''; sm.className = 'status-message';
 }
 
-/* ── DOM ELEMENTS ── */
+/* ── DOM ── */
 const uploadBtn       = document.getElementById('uploadBtn');
 const fileInput       = document.getElementById('fileInput');
 const fileLabel       = document.getElementById('fileLabel');
@@ -29,6 +44,7 @@ const fileNameDisplay = document.getElementById('fileNameDisplay');
 const statusMessage   = document.getElementById('statusMessage');
 const loaderWrap      = document.getElementById('loaderWrap');
 const loaderText      = document.getElementById('loaderText');
+const loaderTimer     = document.getElementById('loaderTimer');
 
 fileInput.addEventListener('change', () => {
   const f = fileInput.files[0];
@@ -50,13 +66,21 @@ uploadBtn.addEventListener('click', async () => {
   loaderWrap.classList.add('active');
   uploadBtn.disabled = true;
 
-  const steps = ['Extraction du texte…', 'Analyse des compétences…', 'Structuration du profil…', 'Finalisation…'];
-  let si = 0;
-  const iv = setInterval(() => { loaderText.innerText = steps[si++ % steps.length]; }, 1400);
+  /* Loading steps + timer */
+  let stepIdx = 0, elapsed = 0;
+  loaderText.innerText   = LOAD_STEPS[0];
+  loaderTimer.innerText  = '0s';
+
+  const stepIv  = setInterval(() => {
+    if (stepIdx < LOAD_STEPS.length - 1) loaderText.innerText = LOAD_STEPS[++stepIdx];
+  }, 5000);
+  const timerIv = setInterval(() => {
+    loaderTimer.innerText = (++elapsed) + 's';
+  }, 1000);
 
   try {
-    const res  = await fetch(ENDPOINTS[currentArch], { method: 'POST', body: fd });
-    const txt  = await res.text();
+    const res = await fetch(ENDPOINTS[currentArch], { method: 'POST', body: fd });
+    const txt = await res.text();
     let data;
     try { data = JSON.parse(txt); } catch { data = { raw: txt }; }
 
@@ -70,7 +94,8 @@ uploadBtn.addEventListener('click', async () => {
   } catch (e) {
     setStatus('Erreur : ' + e.message, 'error');
   } finally {
-    clearInterval(iv);
+    clearInterval(stepIv);
+    clearInterval(timerIv);
     loaderWrap.classList.remove('active');
     uploadBtn.disabled = false;
   }
@@ -83,35 +108,47 @@ function setStatus(msg, cls) {
 
 function qs(id) { return document.getElementById(id); }
 
-/* ════════════════════════════════════════
-   P3 / P4  RENDERING
-   ════════════════════════════════════════ */
+/* ══════════════════════════════════
+   P3 / P4
+   ══════════════════════════════════ */
 
 function renderP34(raw) {
-  const root  = Array.isArray(raw) ? raw[0] : raw;
-  allProfiles = root.profiles         || [];
-  allNotions  = root.freelance_notions || [];
+  const root = Array.isArray(raw) ? raw[0] : raw;
+
+  /* Flexible root keys */
+  allProfiles = root.profiles || root.profils || root.profile_list || [];
+  allNotions  = root.freelance_notions || root.notions || root.notions_transversales || [];
 
   if (!allProfiles.length) {
     setStatus('Aucun profil retourné par le webhook', 'error');
     return;
   }
 
-  /* Profile selector tabs */
-  qs('profileSelector').innerHTML = allProfiles.map((p, i) => `
-    <button class="prof-tab${i === 0 ? ' active' : ''}" onclick="selectProfile(${i})">
-      <div class="prof-tab-score">${p.score_final != null ? p.score_final : '—'}%</div>
-      <div class="prof-tab-name">${p.profile_name || '—'}</div>
-      <div class="prof-tab-meta">
-        <span class="prof-tab-code">${p.profile_code || ''}</span>
-        <span class="prof-tab-seniority">${p.seniority || ''}</span>
-      </div>
-    </button>
-  `).join('');
+  qs('profileSelector').innerHTML = allProfiles.map((p, i) => {
+    const score = pval(p, ['score_final','final_score','score_global','score','matching_score','total_score']);
+    const name  = pval(p, ['profile_name','name','nom_profil','profil','label','titre']);
+    const code  = pval(p, ['profile_code','code','code_profil','code_rome']) || '';
+    const sen   = pval(p, ['seniority','seniority_level','niveau','level']) || '';
+    return `
+      <button class="prof-tab${i === 0 ? ' active' : ''}" onclick="selectProfile(${i})">
+        <div class="prof-tab-score">${score != null ? score : '—'}%</div>
+        <div class="prof-tab-name">${name || '—'}</div>
+        <div class="prof-tab-meta">
+          ${code ? `<span class="prof-tab-code">${code}</span>` : ''}
+          ${sen  ? `<span class="prof-tab-sep">·</span><span class="prof-tab-seniority">${sen}</span>` : ''}
+        </div>
+      </button>`;
+  }).join('');
 
   document.getElementById('cvResult').style.display = 'block';
   renderProfile(0);
   document.querySelectorAll('.accordion').forEach(a => a.classList.remove('open'));
+}
+
+/* Helper: get first non-null value from a list of possible field names */
+function pval(obj, keys) {
+  for (const k of keys) if (obj[k] != null) return obj[k];
+  return null;
 }
 
 function selectProfile(idx) {
@@ -124,54 +161,59 @@ function renderProfile(idx) {
   const p = allProfiles[idx];
   if (!p) return;
 
-  /* Badges & title */
-  qs('phCode').innerText      = p.profile_code || '';
-  qs('phSeniority').innerText = p.seniority    || '';
-  qs('phConf').innerText      = confLabel(p.confidence);
-  qs('phTitle').innerText     = p.profile_name || '';
-  qs('phQuadDesc').innerText  = p.quadrant_description || p.context || '';
+  const code  = pval(p, ['profile_code','code','code_profil']) || '';
+  const sen   = pval(p, ['seniority','seniority_level','niveau','level']) || '';
+  const conf  = pval(p, ['confidence','confiance','confidence_level']) || '';
+  const name  = pval(p, ['profile_name','name','nom_profil','profil','label','titre']) || '';
+  const desc  = pval(p, ['quadrant_description','context','description','contexte','resume']) || '';
+  const score = pval(p, ['score_final','final_score','score_global','score','matching_score','total_score']) ?? 0;
+  const d1    = pval(p, ['score_d1','d1','dim_1','dimension_1','score_planifier']);
+  const d2    = pval(p, ['score_d2','d2','dim_2','dimension_2','score_developper']);
+  const d3    = pval(p, ['score_d3','d3','dim_3','dimension_3','score_gerer']);
+
+  qs('phCode').innerText     = code;
+  qs('phSeniority').innerText = sen;
+  qs('phConf').innerText     = confLabel(conf);
+  qs('phTitle').innerText    = name;
+  qs('phQuadDesc').innerText = desc;
 
   /* Score circle */
-  const score = p.score_final != null ? p.score_final : 0;
   const r = 50, circ = 2 * Math.PI * r;
   const circle = qs('phCircle');
   circle.style.strokeDasharray  = circ;
   circle.style.strokeDashoffset = circ * (1 - score / 100);
   qs('phCircleText').innerText  = score + '%';
 
-  /* D1 / D2 / D3 dimension bars */
+  /* D1 / D2 / D3 */
   const dims = [
-    { l: 'D1', v: p.score_d1 != null ? p.score_d1 : p.d1 },
-    { l: 'D2', v: p.score_d2 != null ? p.score_d2 : p.d2 },
-    { l: 'D3', v: p.score_d3 != null ? p.score_d3 : p.d3 }
+    { l: 'D1', v: d1 },
+    { l: 'D2', v: d2 },
+    { l: 'D3', v: d3 }
   ].filter(d => d.v != null);
 
   qs('phDims').innerHTML = dims.map((d, i) => `
     <div class="dim-row">
       <span class="dim-lbl">${d.l}</span>
-      <div class="mini-bar"><div class="mini-fill fill-d${i + 1}" style="width:${d.v}%"></div></div>
+      <div class="mini-bar"><div class="mini-fill fill-d${i+1}" style="width:${d.v}%"></div></div>
       <span class="dim-val">${d.v}%</span>
-    </div>
-  `).join('');
+    </div>`).join('');
 
-  /* Section content */
   qs('secMission').innerHTML      = renderMission(p.mission);
-  qs('secActivities').innerHTML   = renderActivities(p.activities     || []);
+  qs('secActivities').innerHTML   = renderActivities(p.activities || []);
   qs('secCompetencies').innerHTML = renderCompetencies(p.competencies || []);
   qs('secNotions').innerHTML      = renderNotions(allNotions);
 }
 
 function confLabel(c) {
-  const m = { high: '✓ Haute confiance', medium: '~ Confiance moyenne', low: '⚠ Faible confiance' };
-  return m[c] || (c || '');
+  return { high:'✓ Haute confiance', medium:'~ Confiance moyenne', low:'⚠ Faible confiance' }[c] || (c || '');
 }
 
 /* ── MISSION ── */
 function renderMission(m) {
   if (!m) return '<p class="empty-state">Non disponible</p>';
-  const score = m.score != null ? m.score : m.matching_score;
-  const text  = m.text || m.description || m.summary || '';
-  const dl    = m.deliverables || [];
+  const score = pval(m, ['score','matching_score','score_mission']);
+  const text  = m.text || m.description || m.summary || m.contexte || '';
+  const dl    = m.deliverables || m.livrables || [];
 
   return [
     score != null ? `
@@ -180,7 +222,7 @@ function renderMission(m) {
         <span class="ms-score-val">${score}%</span>
       </div>
       <div class="prog-bar"><div class="prog-fill" style="width:${score}%"></div></div>` : '',
-    text ? `<p class="ms-text">${text}</p>` : '',
+    text  ? `<p class="ms-text">${text}</p>` : '',
     dl.length ? `
       <div class="mt-block-label">Livrables</div>
       <ul class="item-list">${dl.map(d => `<li>${d}</li>`).join('')}</ul>` : ''
@@ -192,10 +234,9 @@ function renderActivities(acts) {
   if (!acts.length) return '<p class="empty-state">Non disponible</p>';
   return acts.map(a => `
     <div class="act-block">
-      <div class="act-title">${a.title || a.activity_title || a.activity || ''}</div>
-      <ul class="item-list">${(a.tasks || []).map(t => `<li>${t}</li>`).join('')}</ul>
-    </div>
-  `).join('');
+      <div class="act-title">${a.title || a.activity_title || a.activity || a.nom || ''}</div>
+      <ul class="item-list">${(a.tasks || a.taches || []).map(t => `<li>${t}</li>`).join('')}</ul>
+    </div>`).join('');
 }
 
 /* ── COMPETENCIES ── */
@@ -229,8 +270,7 @@ function renderCompetencies(comps) {
   return `
     <div class="comp-summary">${summary}</div>
     <div class="ctabs">${tabs}</div>
-    <div class="cpanels">${panels}</div>
-  `;
+    <div class="cpanels">${panels}</div>`;
 }
 
 function switchComp(btn, letter) {
@@ -264,12 +304,12 @@ function renderSkill(s) {
       <div class="sk-body">
         <div class="sk-body-inner">
           <div class="lv-row">
-            <span class="lv-lbl">Niveau candidat</span>
+            <span class="lv-lbl">Candidat</span>
             <div class="dots-row">${levelDots(fl, 5, 'dot-teal')}</div>
             <span class="lv-num">${fl}/5</span>
           </div>
           <div class="lv-row">
-            <span class="lv-lbl">Niveau requis</span>
+            <span class="lv-lbl">Requis</span>
             <div class="dots-row">${levelDots(rl, 5, 'dot-blue')}</div>
             <span class="lv-num">${rl}/5</span>
           </div>
@@ -286,11 +326,9 @@ function renderSkill(s) {
             </div>` : ''}
         </div>
       </div>
-    </div>
-  `;
+    </div>`;
 }
 
-/* Compact level dots — colour indicates gap vs ok */
 function ldots(fl, rl, total) {
   const ok = fl >= rl;
   return Array.from({ length: total }, (_, i) =>
@@ -298,7 +336,6 @@ function ldots(fl, rl, total) {
   ).join('');
 }
 
-/* Full level dots with explicit colour class */
 function levelDots(n, total, cls) {
   return Array.from({ length: total }, (_, i) =>
     `<span class="dot ${i < n ? cls : 'dot-empty'}"></span>`
@@ -307,12 +344,12 @@ function levelDots(n, total, cls) {
 
 function toggleSkill(head) { head.closest('.skill-card').classList.toggle('open'); }
 
-/* ── NOTIONS TRANSVERSALES ── */
+/* ── NOTIONS ── */
 function renderNotions(notions) {
   if (!notions || !notions.length) return '<p class="empty-state">Non disponible</p>';
   return `<div class="notions-list">${notions.map(n => {
-    const fl = n.freelance_level != null ? n.freelance_level : (n.freelance ?? 0);
-    const el = n.expected_level  != null ? n.expected_level  : (n.expected  ?? 0);
+    const fl = n.freelance_level ?? n.freelance ?? 0;
+    const el = n.expected_level  ?? n.expected  ?? 0;
     const ok = fl >= el;
     return `
       <div class="notion-row">
@@ -334,15 +371,12 @@ function renderNotions(notions) {
   }).join('')}</div>`;
 }
 
-/* Stars: teal = ok/met, orange = gap, grey = empty */
 function nstars(filled, threshold, total) {
   return Array.from({ length: total }, (_, i) => {
-    let cls;
-    if (i < filled) cls = filled >= threshold ? 'star-filled' : 'star-gap';
-    else cls = 'star-empty';
+    const cls = i < filled ? (filled >= threshold ? 'star-filled' : 'star-gap') : 'star-empty';
     return `<span class="star ${cls}">★</span>`;
   }).join('');
 }
 
-/* ── ACCORDION TOGGLE ── */
+/* ── ACCORDION ── */
 function toggleAcc(h) { h.closest('.accordion').classList.toggle('open'); }
