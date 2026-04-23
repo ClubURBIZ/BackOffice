@@ -548,6 +548,15 @@ button:disabled, .primary-btn:disabled {
 a { color: var(--teal); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
+/* ── LOADER TIMER ── */
+.loader-info { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.loader-timer {
+  font-size: 0.72rem;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.5px;
+}
+
 /* ── RESPONSIVE ── */
 @media (max-width: 680px) {
   h1 { font-size: 1.9rem; }
