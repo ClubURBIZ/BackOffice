@@ -59,7 +59,10 @@
     <!-- LOADER -->
     <div id="loaderWrap" class="loader-wrap">
       <div class="loader"></div>
-      <div id="loaderText" class="loader-text">Analyse en cours…</div>
+      <div class="loader-info">
+        <div id="loaderText" class="loader-text">Analyse en cours…</div>
+        <div id="loaderTimer" class="loader-timer">0s</div>
+      </div>
     </div>
 
     <!-- SIMPLE RESULT (P0/P1, P2) -->
@@ -91,9 +94,9 @@
         </div>
         <div class="ph-right">
           <div class="score-circle-lg">
-            <svg viewBox="0 0 120 120">
-              <circle cx="60" cy="60" r="50"></circle>
-              <circle cx="60" cy="60" r="50" id="phCircle"></circle>
+            <svg viewBox="0 0 120 120" width="96" height="96">
+              <circle cx="60" cy="60" r="50" fill="none"></circle>
+              <circle cx="60" cy="60" r="50" fill="none" id="phCircle"></circle>
             </svg>
             <div id="phCircleText" class="score-text-lg"></div>
           </div>
