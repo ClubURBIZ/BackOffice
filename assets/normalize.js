@@ -125,10 +125,10 @@ function renderP34(raw) {
   }
 
   qs('profileSelector').innerHTML = allProfiles.map((p, i) => {
-    const score = pval(p, ['score_final','final_score','score_global','score','matching_score','total_score']);
-    const name  = pval(p, ['profile_name','name','nom_profil','profil','label','titre']);
-    const code  = pval(p, ['profile_code','code','code_profil','code_rome']) || '';
-    const sen   = pval(p, ['seniority','seniority_level','niveau','level']) || '';
+    const score = (p.scores && p.scores.final != null) ? p.scores.final : pval(p, ['score_final','final_score','score_global','matching_score','total_score']);
+    const name  = p.title || pval(p, ['profile_name','name','nom_profil','profil','label','titre']);
+    const code  = p.code  || pval(p, ['profile_code','code_profil','code_rome']) || '';
+    const sen   = (p.analysis && p.analysis.seniority && p.analysis.seniority.label) || pval(p, ['seniority','seniority_level','niveau','level']) || '';
     return `
       <button class="prof-tab${i === 0 ? ' active' : ''}" onclick="selectProfile(${i})">
         <div class="prof-tab-score">${score != null ? score : '—'}%</div>
@@ -161,15 +161,15 @@ function renderProfile(idx) {
   const p = allProfiles[idx];
   if (!p) return;
 
-  const code  = pval(p, ['profile_code','code','code_profil']) || '';
-  const sen   = pval(p, ['seniority','seniority_level','niveau','level']) || '';
-  const conf  = pval(p, ['confidence','confiance','confidence_level']) || '';
-  const name  = pval(p, ['profile_name','name','nom_profil','profil','label','titre']) || '';
-  const desc  = pval(p, ['quadrant_description','context','description','contexte','resume']) || '';
-  const score = pval(p, ['score_final','final_score','score_global','score','matching_score','total_score']) ?? 0;
-  const d1    = pval(p, ['score_d1','d1','dim_1','dimension_1','score_planifier']);
-  const d2    = pval(p, ['score_d2','d2','dim_2','dimension_2','score_developper']);
-  const d3    = pval(p, ['score_d3','d3','dim_3','dimension_3','score_gerer']);
+  const code  = p.code  || pval(p, ['profile_code','code_profil','code_rome']) || '';
+  const sen   = (p.analysis && p.analysis.seniority && p.analysis.seniority.label) || pval(p, ['seniority','seniority_level','niveau','level']) || '';
+  const conf  = (p.scores && p.scores.confidence) || pval(p, ['confidence','confiance','confidence_level']) || '';
+  const name  = p.title || pval(p, ['profile_name','name','nom_profil','profil','label','titre']) || '';
+  const desc  = (p.analysis && p.analysis.quadrant && p.analysis.quadrant.description) || pval(p, ['quadrant_description','context','description','contexte','resume']) || '';
+  const score = (p.scores && p.scores.final != null ? p.scores.final : pval(p, ['score_final','final_score','score_global','matching_score','total_score'])) ?? 0;
+  const d1    = (p.scores && p.scores.d1 != null) ? p.scores.d1 : pval(p, ['score_d1','d1','dim_1','dimension_1']);
+  const d2    = (p.scores && p.scores.d2 != null) ? p.scores.d2 : pval(p, ['score_d2','d2','dim_2','dimension_2']);
+  const d3    = (p.scores && p.scores.d3 != null) ? p.scores.d3 : pval(p, ['score_d3','d3','dim_3','dimension_3']);
 
   qs('phCode').innerText     = code;
   qs('phSeniority').innerText = sen;
@@ -199,9 +199,9 @@ function renderProfile(idx) {
     </div>`).join('');
 
   qs('secMission').innerHTML      = renderMission(p.mission);
-  qs('secActivities').innerHTML   = renderActivities(p.activities || []);
-  qs('secCompetencies').innerHTML = renderCompetencies(p.competencies || []);
-  qs('secNotions').innerHTML      = renderNotions(allNotions);
+  qs('secActivities').innerHTML   = renderActivities((p.activities && p.activities.items) || (Array.isArray(p.activities) ? p.activities : []));
+  qs('secCompetencies').innerHTML = renderCompetencies((p.competencies && p.competencies.items) || (Array.isArray(p.competencies) ? p.competencies : []));
+  qs('secNotions').innerHTML      = renderNotions((p.notions_transversales && p.notions_transversales.items) || []);
 }
 
 function confLabel(c) {
@@ -252,9 +252,11 @@ function renderCompetencies(comps) {
   const first   = letters[0];
 
   const summary = comps.map(c => {
-    const g   = c.gap != null ? c.gap : (c.freelance_level - c.required_level);
-    const cls = g >= 0 ? 'c-strong' : (g >= -1 ? 'c-adequate' : 'c-weak');
-    return `<span class="cbadge ${cls}">${c.code || c.name}</span>`;
+    const fl  = c.cv_estimated_level ?? c.freelance_level ?? 0;
+    const rl  = c.expected_level ?? c.required_level ?? 0;
+    const g   = fl - rl;
+    const cls = c.status === 'strong' ? 'c-strong' : c.status === 'adequate' ? 'c-adequate' : c.status === 'missing' ? 'c-weak' : (g >= 0 ? 'c-strong' : (g >= -1 ? 'c-adequate' : 'c-weak'));
+    return `<span class="cbadge ${cls}">${c.code || c.title || c.name}</span>`;
   }).join('');
 
   const tabs = letters.map(l => `
@@ -282,18 +284,22 @@ function switchComp(btn, letter) {
 }
 
 function renderSkill(s) {
-  const fl  = s.freelance_level ?? 0;
-  const rl  = s.required_level  ?? 0;
+  const fl  = s.cv_estimated_level ?? s.freelance_level ?? 0;
+  const rl  = s.expected_level ?? s.required_level ?? 0;
   const g   = fl - rl;
   const cls = g >= 0 ? 'c-strong' : (g >= -1 ? 'c-adequate' : 'c-weak');
   const gtxt = g >= 0 ? `+${g}` : `${g}`;
+  const skillName = s.title || s.name || s.skill_name || '';
+  const skillDesc = s.skill_description || s.description || '';
+  const knowledge = (s.knowledge || []).map(k => typeof k === 'object' ? k.description : k).filter(Boolean);
+  const abilities = (s.abilities || []).map(a => typeof a === 'object' ? a.description : a).filter(Boolean);
 
   return `
     <div class="skill-card">
       <div class="sk-head" onclick="toggleSkill(this)">
         <div class="sk-info">
           <span class="sk-code">${s.code || ''}</span>
-          <span class="sk-name">${s.name || s.skill_name || ''}</span>
+          <span class="sk-name">${skillName}</span>
         </div>
         <div class="sk-right">
           <div class="dots-row">${ldots(fl, rl, 5)}</div>
@@ -313,16 +319,16 @@ function renderSkill(s) {
             <div class="dots-row">${levelDots(rl, 5, 'dot-blue')}</div>
             <span class="lv-num">${rl}/5</span>
           </div>
-          ${s.description ? `<p class="sk-desc">${s.description}</p>` : ''}
-          ${s.knowledge && s.knowledge.length ? `
+          ${skillDesc ? `<p class="sk-desc">${skillDesc}</p>` : ''}
+          ${knowledge.length ? `
             <div class="ka-section">
               <div class="ka-lbl">Savoirs</div>
-              <ul class="item-list">${s.knowledge.map(k => `<li>${k}</li>`).join('')}</ul>
+              <ul class="item-list">${knowledge.map(k => `<li>${k}</li>`).join('')}</ul>
             </div>` : ''}
-          ${s.abilities && s.abilities.length ? `
+          ${abilities.length ? `
             <div class="ka-section">
               <div class="ka-lbl">Savoir-faire</div>
-              <ul class="item-list">${s.abilities.map(a => `<li>${a}</li>`).join('')}</ul>
+              <ul class="item-list">${abilities.map(a => `<li>${a}</li>`).join('')}</ul>
             </div>` : ''}
         </div>
       </div>
@@ -353,7 +359,7 @@ function renderNotions(notions) {
     const ok = fl >= el;
     return `
       <div class="notion-row">
-        <span class="notion-name">${n.notion_name || n.name || ''}</span>
+        <span class="notion-name">${n.label || n.notion_name || n.name || ''}</span>
         <div class="notion-stars-wrap">
           <div class="notion-stars-row">
             <span class="notion-stars-lbl">Candidat</span>
