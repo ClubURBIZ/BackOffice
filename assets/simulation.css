@@ -19,7 +19,6 @@
   margin-bottom: 0 !important;
 }
 
-/* Override global button gradient for non-primary buttons inside sim page */
 .sim-rgn-btn,
 .sim-print-btn {
   background: rgba(255,255,255,0.05) !important;
@@ -103,8 +102,19 @@
   font-family: inherit;
   outline: none;
   transition: border-color 0.2s;
+  box-sizing: border-box;
 }
 .sim-text-in:focus { border-color: var(--teal); }
+.sim-text-in:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* Small name input inside role fields */
+.sim-text-in.sim-name-in {
+  padding: 5px 8px;
+  font-size: 0.74rem;
+  border-radius: 6px;
+  color: var(--text-faint);
+}
+.sim-text-in.sim-name-in:focus { color: var(--text); }
 
 /* Trust label radio badges */
 .sim-trust-grp {
@@ -129,18 +139,20 @@
   user-select: none;
 }
 
+/* INITIAL = Green */
 .stb-initial {
-  background: rgba(255,255,255,0.07);
-  color: rgba(255,255,255,0.6);
-  border-color: rgba(255,255,255,0.16);
+  background: rgba(22,163,74,0.09);
+  color: #16a34a;
+  border-color: rgba(22,163,74,0.25);
 }
 .sim-trust-opt input:checked + .stb-initial {
-  background: rgba(255,255,255,0.16);
-  color: #fff;
-  border-color: rgba(255,255,255,0.5);
-  box-shadow: 0 0 10px rgba(255,255,255,0.08);
+  background: rgba(22,163,74,0.20);
+  color: #15803d;
+  border-color: #16a34a;
+  box-shadow: 0 0 10px rgba(22,163,74,0.2);
 }
 
+/* PREMIUM = Gold */
 .stb-premium {
   background: rgba(245,197,66,0.09);
   color: #c8921a;
@@ -153,16 +165,17 @@
   box-shadow: 0 0 10px rgba(245,197,66,0.18);
 }
 
+/* ELITE = Orange */
 .stb-elite {
-  background: rgba(61,90,254,0.09);
-  color: #7b9fff;
-  border-color: rgba(61,90,254,0.22);
+  background: rgba(249,115,22,0.09);
+  color: #f97316;
+  border-color: rgba(249,115,22,0.22);
 }
 .sim-trust-opt input:checked + .stb-elite {
-  background: rgba(61,90,254,0.22);
-  color: #a0b8ff;
-  border-color: #7b9fff;
-  box-shadow: 0 0 10px rgba(61,90,254,0.18);
+  background: rgba(249,115,22,0.2);
+  color: #fb923c;
+  border-color: #f97316;
+  box-shadow: 0 0 10px rgba(249,115,22,0.18);
 }
 
 /* Region toggle */
@@ -205,13 +218,13 @@
 }
 
 .sim-tj-in {
-  width: 130px;
+  width: 110px;
   background: rgba(255,255,255,0.06);
   border: 1px solid var(--glass-border);
   border-radius: 10px;
   color: var(--text);
-  padding: 10px 14px;
-  font-size: 1.2rem;
+  padding: 7px 10px;
+  font-size: 1.05rem;
   font-weight: 700;
   font-family: inherit;
   outline: none;
@@ -230,12 +243,12 @@
 }
 
 .sim-pct-in {
-  width: 60px;
+  width: 56px;
   background: rgba(255,255,255,0.06);
   border: 1px solid var(--glass-border);
   border-radius: 8px;
   color: var(--text);
-  padding: 7px 8px;
+  padding: 6px 7px;
   font-size: 0.88rem;
   font-family: inherit;
   outline: none;
@@ -305,9 +318,9 @@
 }
 
 .fiche-title {
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   font-weight: 900;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
   color: #0d2247;
 }
 
@@ -344,11 +357,11 @@
   line-height: 1;
 }
 
-/* Section Markup : description | boîtes */
+/* Section Markup (au-dessus du TJ) */
 .fiche-markup-section {
   display: flex;
   align-items: center;
-  padding: 20px 32px 0;
+  padding: 18px 32px 0;
   gap: 20px;
   background: #fff;
 }
@@ -356,10 +369,17 @@
 .fiche-ms-desc { flex: 1; }
 
 .fiche-mu-tag {
-  font-size: 0.71rem;
-  font-weight: 600;
-  color: #d0453f;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #0d2247;
   margin-bottom: 10px;
+}
+
+.fiche-mu-pct {
+  font-size: 0.68rem;
+  font-weight: 400;
+  color: #8aaec8;
+  margin-left: 4px;
 }
 
 .fiche-mu-logo {
@@ -370,14 +390,14 @@
 }
 
 .fiche-mu-logo-icon {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   border: 2.5px solid #00a08c;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: #00a08c;
   flex-shrink: 0;
   font-weight: 700;
@@ -440,129 +460,167 @@
   opacity: 0.9;
 }
 
-/* Séparateur + TJ BRUT — aligné sur la colonne droite */
-.fiche-sep {
+/* Barre TJ FACTURÉ À URBIZ — séparateur central */
+.fiche-tj-bar {
   display: flex;
-  padding: 8px 32px 10px;
-  background: #fff;
-}
-
-.fiche-sep-left { flex: 1; }
-
-.fiche-sep-right {
-  width: 195px;
-  display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 5px;
-}
-
-.fiche-plus-circle {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
+  justify-content: space-between;
+  padding: 14px 32px;
+  margin-top: 18px;
   background: #0d2247;
+}
+
+.fiche-tj-bar-label {
+  font-size: 0.73rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.6);
+}
+
+.fiche-tj-bar-val {
+  font-size: 1.3rem;
+  font-weight: 700;
   color: #fff;
+}
+
+/* Bloc Service Club — style facture (en-dessous du TJ) */
+.fiche-service-club {
+  background: #f7fafc;
+  padding: 16px 32px 20px;
+}
+
+.fiche-sc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.fiche-sc-logo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.fiche-sc-logo-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid #00a08c;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 1rem;
+  font-size: 0.7rem;
+  color: #00a08c;
+  flex-shrink: 0;
 }
 
-.fiche-tj-brut-tag {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #a8c4d8;
-  text-align: center;
+.fiche-sc-logo-text {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #0d2247;
+  letter-spacing: 0.2px;
 }
 
-/* Lignes de rôles */
-.fiche-roles { background: #fff; }
+.fiche-sc-badge {
+  background: rgba(22,163,74,0.1);
+  color: #16a34a;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 20px;
+}
 
-.fiche-role-row {
+.fiche-sc-row {
   display: flex;
   align-items: center;
-  padding: 0 32px;
-  height: 46px;
-  border-top: 1px solid #eef3f8;
+  padding: 7px 0;
+  border-top: 1px solid #e4edf5;
 }
 
-.fiche-rl-labels {
-  min-width: 155px;
-  flex-shrink: 0;
+.fiche-sc-r-left {
+  min-width: 150px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   gap: 1px;
 }
 
-.fiche-rl-title {
-  font-size: 0.71rem;
+.fiche-sc-r-title {
+  font-size: 0.7rem;
   font-weight: 700;
-  color: #00a08c;
+  color: #117a65;
   white-space: nowrap;
 }
 
-.fiche-rl-name {
-  font-size: 0.67rem;
-  font-weight: 700;
-  color: #0d2247;
+.fiche-sc-r-name {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #4a6a8c;
   white-space: nowrap;
 }
 
-.fiche-role-dots {
+.fiche-sc-r-dots {
   flex: 1;
   height: 0;
-  border-bottom: 1.5px dashed rgba(0,160,140,0.4);
+  border-bottom: 1.5px dashed rgba(0,160,140,0.3);
   align-self: center;
-  margin: 0 6px;
+  margin: 0 8px;
 }
 
-.fiche-role-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #0d2247;
-  flex-shrink: 0;
-  align-self: center;
-}
-
-.fiche-rb {
-  width: 195px;
-  flex-shrink: 0;
-  height: 38px;
+.fiche-sc-r-right {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  background: #117a65;
-  color: #fff;
-  font-size: 0.88rem;
-  font-weight: 700;
-  border-radius: 6px;
-  padding: 0 10px;
+  align-items: baseline;
+  gap: 4px;
   white-space: nowrap;
 }
 
-.fiche-rb-pct {
+.fiche-sc-r-amt {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #0d2247;
+}
+
+.fiche-sc-r-pct {
+  font-size: 0.67rem;
+  color: #8aaec8;
+}
+
+.fiche-sc-row--na .fiche-sc-r-title { color: #b0c8da; }
+.fiche-sc-row--na .fiche-sc-r-name  { color: #b0c8da; }
+.fiche-sc-row--na .fiche-sc-r-dots  { border-color: rgba(180,200,220,0.3); }
+.fiche-sc-row--na .fiche-sc-r-amt   { color: #b0c8da; }
+
+.fiche-sc-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 2px solid #0d2247;
+  padding-top: 10px;
+  margin-top: 6px;
+}
+
+.fiche-sc-total-lbl {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #0d2247;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.fiche-sc-total-amt {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #117a65;
+}
+
+.fiche-sc-total-pct {
   font-size: 0.7rem;
   font-weight: 400;
-  opacity: 0.8;
+  color: #8aaec8;
 }
 
-.fiche-rb-na {
-  background: #c4d5e3;
-  color: rgba(255,255,255,0.9);
-}
-
-/* Rôle désactivé (ex : Parrain pour INITIAL) */
-.fiche-rl-na .fiche-rl-title  { color: #b0c8da; }
-.fiche-rl-na .fiche-rl-name   { color: #b0c8da; }
-.fiche-rl-na .fiche-role-dots { border-color: rgba(180,200,220,0.35); }
-.fiche-rl-na .fiche-role-dot  { background: #c4d5e3; }
-
-/* Section membre + TJ Net */
+/* Section membre + TJ final */
 .fiche-bottom {
   display: flex;
   align-items: stretch;
@@ -610,41 +668,57 @@
   font-weight: 600;
 }
 
-/* Variantes INITIAL / PREMIUM / ELITE */
+/* INITIAL = Green */
 .ftp-initial .fiche-trust-pill-dot {
-  border: 2px solid #0d2247;
-  color: #0d2247;
+  background: rgba(22,163,74,0.12);
+  border: 2px solid #16a34a;
+  color: #16a34a;
 }
-.ftp-initial .fiche-trust-pill-label { color: #0d2247; }
+.ftp-initial .fiche-trust-pill-label { color: #16a34a; }
 
+/* PREMIUM = Gold */
 .ftp-premium .fiche-trust-pill-dot {
   background: linear-gradient(135deg, #f5c542, #d4940a);
   color: #fff;
 }
 .ftp-premium .fiche-trust-pill-label { color: #b07a0a; }
 
+/* ELITE = Orange */
 .ftp-elite .fiche-trust-pill-dot {
-  background: #0d2247;
+  background: linear-gradient(135deg, #f97316, #ea580c);
   color: #fff;
 }
-.ftp-elite .fiche-trust-pill-label { color: #0d2247; }
+.ftp-elite .fiche-trust-pill-label { color: #f97316; }
 
-/* Grande boîte TJ Net */
+/* Couleurs par label : logo pastilles + badge service club */
+.fiche--initial .fiche-mu-logo-icon,
+.fiche--initial .fiche-sc-logo-icon { border-color: #16a34a; color: #16a34a; }
+.fiche--initial .fiche-sc-badge     { background: rgba(22,163,74,0.10); color: #16a34a; }
+
+.fiche--premium .fiche-mu-logo-icon,
+.fiche--premium .fiche-sc-logo-icon { border-color: #d4940a; color: #d4940a; }
+.fiche--premium .fiche-sc-badge     { background: rgba(245,197,66,0.12); color: #d4940a; }
+
+.fiche--elite .fiche-mu-logo-icon,
+.fiche--elite .fiche-sc-logo-icon   { border-color: #f97316; color: #f97316; }
+.fiche--elite .fiche-sc-badge       { background: rgba(249,115,22,0.10); color: #f97316; }
+
+/* Grande boîte TJ final perçu */
 .fiche-net-box {
   width: 195px;
   flex-shrink: 0;
   background: #00c9a7;
   border-radius: 8px;
-  padding: 22px 14px;
+  padding: 20px 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 4px;
 }
 
 .fiche-net-amt {
-  font-size: 1.65rem;
+  font-size: 1.55rem;
   font-weight: 700;
   color: #fff;
   line-height: 1;
@@ -654,7 +728,13 @@
 .fiche-net-lbl {
   font-size: 0.72rem;
   font-weight: 600;
-  color: rgba(255,255,255,0.88);
+  color: rgba(255,255,255,0.9);
+  text-align: center;
+}
+
+.fiche-net-sub {
+  font-size: 0.64rem;
+  color: rgba(255,255,255,0.7);
   text-align: center;
 }
 
@@ -685,21 +765,16 @@
 
 /* ── Responsive ── */
 @media (max-width: 960px) {
-  .sim-layout {
-    grid-template-columns: 1fr;
-  }
+  .sim-layout { grid-template-columns: 1fr; }
   .sim-config { position: static; }
 }
 
 @media (max-width: 640px) {
-  .fiche-markup-section {
-    flex-direction: column;
-    align-items: stretch;
-  }
+  .fiche-markup-section { flex-direction: column; align-items: stretch; }
   .fiche-ms-boxes { width: 100%; }
-  .fiche-sep-right { width: 100%; }
-  .fiche-rb { width: 140px; font-size: 0.82rem; }
+  .fiche-sc-r-left { min-width: 120px; }
   .fiche-bottom { flex-direction: column; }
   .fiche-net-box { width: 100%; }
   .fiche-client-val { font-size: 1.5rem; }
+  .fiche-tj-bar-val { font-size: 1.1rem; }
 }
