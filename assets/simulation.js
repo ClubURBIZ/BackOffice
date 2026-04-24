@@ -8,7 +8,7 @@
 const RATES = {
   INITIAL: {
     paris:    { mu: 15, mv: 5 },
-    province: { mu:  9, mv: 3 }
+    province: { mu:  12, mv: 3 }
   },
   PREMIUM: {
     paris:    { mu: 15, mv: 0 },
