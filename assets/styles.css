@@ -1115,6 +1115,243 @@ a:hover { text-decoration: underline; }
 
 .empty-state { color: var(--text-faint); font-size: 0.84rem; font-style: italic; }
 
+/* ══════════════════════════════════════════════════
+   V4 — FREELANCE IDENTITY CARD
+   ══════════════════════════════════════════════════ */
+
+.fl-card {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  padding: 20px 24px;
+  flex-wrap: wrap;
+}
+
+.fl-photo-wrap {
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgba(0,212,170,0.35);
+  box-shadow: 0 0 0 4px rgba(0,212,170,0.07);
+}
+
+.fl-photo-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.fl-photo-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(0,212,170,0.2), rgba(61,90,254,0.2));
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: var(--teal);
+}
+
+.fl-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.fl-name {
+  font-size: 1.3rem;
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.3px;
+}
+
+.fl-title {
+  font-size: 0.88rem;
+  color: var(--text-soft);
+  font-weight: 500;
+}
+
+.fl-meta {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 2px;
+}
+
+.fl-meta-item {
+  font-size: 0.78rem;
+  color: var(--text-faint);
+}
+
+.fl-badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 3px;
+}
+
+.fl-badge {
+  font-size: 0.67rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.fl-badge-freelance { color: #00d4aa; background: rgba(0,212,170,0.1);  border-color: rgba(0,212,170,0.28); }
+.fl-badge-remote    { color: #7c9dff; background: rgba(61,90,254,0.1);  border-color: rgba(61,90,254,0.28); }
+.fl-badge-mobility  { color: #ffb74d; background: rgba(255,152,0,0.1);  border-color: rgba(255,152,0,0.28); }
+.fl-badge-license   { color: #f48fb1; background: rgba(233,30,99,0.1);  border-color: rgba(233,30,99,0.28); }
+
+.fl-seniority {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 18px;
+  border-radius: 14px;
+  background: rgba(0,212,170,0.06);
+  border: 1px solid rgba(0,212,170,0.18);
+  text-align: center;
+}
+
+.fl-sen-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--teal);
+}
+
+.fl-sen-meta { display: flex; gap: 8px; align-items: center; }
+
+.fl-sen-years {
+  font-size: 0.72rem;
+  color: var(--text-soft);
+}
+
+.fl-sen-score {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: rgba(0,212,170,0.8);
+  background: rgba(0,212,170,0.1);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+/* ══════════════════════════════════════════════════
+   V4 — TECH STACK + GLOBAL NOTIONS
+   ══════════════════════════════════════════════════ */
+
+.tn-wrap {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 18px;
+  align-items: flex-start;
+}
+
+.tn-col {
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 0 !important;
+}
+
+.tn-title {
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 14px;
+}
+
+.tech-group { margin-bottom: 12px; }
+.tech-group:last-child { margin-bottom: 0; }
+
+.tech-group-label {
+  font-size: 0.61rem;
+  font-weight: 600;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.tech-pills { display: flex; flex-wrap: wrap; gap: 5px; }
+
+.tech-pill {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--tc-bg);
+  border: 1px solid var(--tc-border);
+  color: var(--tc-text);
+  white-space: nowrap;
+  transition: opacity 0.2s;
+  cursor: default;
+}
+
+/* ══════════════════════════════════════════════════
+   V4 — PROFILE FIT LEVEL
+   ══════════════════════════════════════════════════ */
+
+.prof-tab-fit {
+  font-size: 0.58rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-top: 2px;
+  background: rgba(255,255,255,0.05);
+  color: var(--text-faint);
+  letter-spacing: 0.2px;
+}
+
+.pfl-5 { color: #6ff7cf; background: rgba(111,247,207,0.12); }
+.pfl-4 { color: #00d4aa; background: rgba(0,212,170,0.10); }
+.pfl-3 { color: #ffd54f; background: rgba(255,213,79,0.10); }
+.pfl-2 { color: #ffb74d; background: rgba(255,152,0,0.10);  }
+.pfl-1 { color: #ff8a80; background: rgba(255,138,128,0.10);}
+
+/* ══════════════════════════════════════════════════
+   V4 — GAP & IMPROVEMENT in PROFILE HEADER
+   ══════════════════════════════════════════════════ */
+
+.ph-gap-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.ph-gap-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.gap-positive { color: #6ff7cf; background: rgba(111,247,207,0.10); border-color: rgba(111,247,207,0.22); }
+.gap-neutral  { color: #ffd54f; background: rgba(255,213,79,0.10);  border-color: rgba(255,213,79,0.22);  }
+.gap-negative { color: #ff8a80; background: rgba(255,138,128,0.10); border-color: rgba(255,138,128,0.22); }
+
+.ph-improvement {
+  font-size: 0.7rem;
+  color: var(--text-faint);
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.09);
+}
+
 /* ── RESPONSIVE ── */
 @media (max-width: 680px) {
   h1 { font-size: 1.9rem; }
@@ -1137,4 +1374,8 @@ a:hover { text-decoration: underline; }
 
   .ctabs { flex-direction: column; }
   .ctab { width: 100%; }
+
+  .tn-wrap { flex-direction: column; }
+  .fl-card { flex-direction: column; align-items: flex-start; }
+  .fl-seniority { width: 100%; flex-direction: row; justify-content: space-between; padding: 10px 14px; }
 }

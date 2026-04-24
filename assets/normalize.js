@@ -6,6 +6,19 @@ const ENDPOINTS = {
 
 const AREAS = { A:'Planifier', B:'Développer', C:'Gérer', D:'Exploiter', E:'Faciliter' };
 
+const TECH_COLORS = {
+  langage:         { bg:'rgba(0,212,170,0.12)',  border:'rgba(0,212,170,0.35)',  text:'#00d4aa' },
+  framework:       { bg:'rgba(61,90,254,0.12)',  border:'rgba(61,90,254,0.35)',  text:'#7c9dff' },
+  base_de_données: { bg:'rgba(171,71,188,0.12)', border:'rgba(171,71,188,0.35)', text:'#ce93d8' },
+  methodologie:    { bg:'rgba(255,152,0,0.12)',  border:'rgba(255,152,0,0.35)',  text:'#ffb74d' },
+  outil:           { bg:'rgba(233,30,99,0.12)',  border:'rgba(233,30,99,0.35)',  text:'#f48fb1' },
+  cloud:           { bg:'rgba(3,169,244,0.12)',  border:'rgba(3,169,244,0.35)',  text:'#81d4fa' }
+};
+const TECH_LABEL_FR = {
+  langage:'Langages', framework:'Frameworks', base_de_données:'Bases de données',
+  methodologie:'Méthodologies', outil:'Outils', cloud:'Cloud'
+};
+
 const LOAD_STEPS = [
   'Extraction du CV brut via MISTRAL…',
   'Analyse des métadonnées (nom, email, téléphone…)',
@@ -21,17 +34,22 @@ const LOAD_STEPS = [
   'Finalisation…'
 ];
 
-let currentArch = 'p34';
-let allProfiles = [];
-let allNotions  = [];
+let currentArch  = 'p34';
+let allProfiles  = [];
+let allNotions   = [];
+let allFreelance = null;
 
 /* ── ARCH SELECTOR ── */
 function selectArch(btn, arch) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
   currentArch = arch;
-  document.getElementById('cvResult').style.display    = 'none';
-  document.getElementById('simpleResult').style.display = 'none';
+  document.getElementById('cvResult').style.display      = 'none';
+  document.getElementById('simpleResult').style.display  = 'none';
+  const fc = document.getElementById('freelanceCard');
+  const tn = document.getElementById('techNotionsSection');
+  if (fc) fc.style.display = 'none';
+  if (tn) tn.style.display = 'none';
   const sm = document.getElementById('statusMessage');
   sm.innerText = ''; sm.className = 'status-message';
 }
@@ -115,20 +133,25 @@ function qs(id) { return document.getElementById(id); }
 function renderP34(raw) {
   const root = Array.isArray(raw) ? raw[0] : raw;
 
-  /* Flexible root keys */
-  allProfiles = root.profiles || root.profils || root.profile_list || [];
-  allNotions  = root.freelance_notions || root.notions || root.notions_transversales || [];
+  allProfiles  = root.profiles || root.profils || root.profile_list || [];
+  allNotions   = root.freelance_notions || root.notions || [];
+  allFreelance = root.freelance || null;
 
   if (!allProfiles.length) {
     setStatus('Aucun profil retourné par le webhook', 'error');
     return;
   }
 
+  if (allFreelance) renderFreelanceCard(allFreelance);
+  renderTechNotionsSection(allFreelance && allFreelance.tech_stack, allNotions);
+
   qs('profileSelector').innerHTML = allProfiles.map((p, i) => {
     const score = (p.scores && p.scores.final != null) ? p.scores.final : pval(p, ['score_final','final_score','score_global','matching_score','total_score']);
     const name  = p.title || pval(p, ['profile_name','name','nom_profil','profil','label','titre']);
     const code  = p.code  || pval(p, ['profile_code','code_profil','code_rome']) || '';
     const sen   = (p.analysis && p.analysis.seniority && p.analysis.seniority.label) || pval(p, ['seniority','seniority_level','niveau','level']) || '';
+    const fit   = p.analysis && p.analysis.profile_fit_level;
+    const fitHtml = fit ? `<div class="prof-tab-fit pfl-${fit.level || 0}">${fit.label || ('Fit ' + fit.level)}</div>` : '';
     return `
       <button class="prof-tab${i === 0 ? ' active' : ''}" onclick="selectProfile(${i})">
         <div class="prof-tab-score">${score != null ? score : '—'}%</div>
@@ -137,6 +160,7 @@ function renderP34(raw) {
           ${code ? `<span class="prof-tab-code">${code}</span>` : ''}
           ${sen  ? `<span class="prof-tab-sep">·</span><span class="prof-tab-seniority">${sen}</span>` : ''}
         </div>
+        ${fitHtml}
       </button>`;
   }).join('');
 
@@ -198,10 +222,115 @@ function renderProfile(idx) {
       <span class="dim-val">${d.v}%</span>
     </div>`).join('');
 
+  /* Gap direction + improvement potential */
+  const gapDir   = (p.gap && p.gap.direction) || (p.analysis && p.analysis.gap && p.analysis.gap.direction) || '';
+  const gapScore = (p.gap && p.gap.score != null) ? p.gap.score : ((p.analysis && p.analysis.gap && p.analysis.gap.score != null) ? p.analysis.gap.score : null);
+  const improv   = (p.analysis && p.analysis.improvement && p.analysis.improvement.potential_final != null) ? p.analysis.improvement.potential_final : null;
+  const gapEl    = qs('phGapRow');
+  if (gapDir || improv != null) {
+    const gapCls   = /positif|positive|fort/.test(gapDir) ? 'gap-positive' : /négatif|negatif|negative|faible/.test(gapDir) ? 'gap-negative' : 'gap-neutral';
+    const gapBadge = gapDir ? `<span class="ph-gap-badge ${gapCls}">Gap : ${gapDir}${gapScore != null ? ' · ' + gapScore + '%' : ''}</span>` : '';
+    const impBadge = improv != null ? `<span class="ph-improvement">Potentiel +${improv}%</span>` : '';
+    gapEl.innerHTML = gapBadge + impBadge;
+    gapEl.style.display = 'flex';
+  } else {
+    gapEl.innerHTML = '';
+    gapEl.style.display = 'none';
+  }
+
   qs('secMission').innerHTML      = renderMission(p.mission);
   qs('secActivities').innerHTML   = renderActivities((p.activities && p.activities.items) || (Array.isArray(p.activities) ? p.activities : []));
   qs('secCompetencies').innerHTML = renderCompetencies((p.competencies && p.competencies.items) || (Array.isArray(p.competencies) ? p.competencies : []));
   qs('secNotions').innerHTML      = renderNotions((p.notions_transversales && p.notions_transversales.items) || []);
+}
+
+/* ── FREELANCE IDENTITY CARD ── */
+function renderFreelanceCard(fl) {
+  const name  = fl.name || '';
+  const title = fl.current_title || fl.title || '';
+  const email = fl.email || '';
+  const phone = fl.phone || '';
+  const city  = fl.city || '';
+  const photo = fl.photo_base64 || '';
+  const sen   = fl.seniority || {};
+
+  const photoHtml = photo
+    ? `<img src="${photo.startsWith('data:') ? photo : 'data:image/jpeg;base64,' + photo}" alt="" />`
+    : `<div class="fl-photo-placeholder">${name ? name.charAt(0).toUpperCase() : '?'}</div>`;
+
+  const badges = [
+    fl.is_freelance !== false ? '<span class="fl-badge fl-badge-freelance">Freelance</span>' : '',
+    fl.remote_work     ? '<span class="fl-badge fl-badge-remote">Télétravail</span>'   : '',
+    fl.mobility        ? '<span class="fl-badge fl-badge-mobility">Mobilité</span>'    : '',
+    fl.driving_license ? '<span class="fl-badge fl-badge-license">Permis B</span>'     : ''
+  ].filter(Boolean).join('');
+
+  const metaItems = [
+    email ? `<span class="fl-meta-item">✉ ${email}</span>` : '',
+    phone ? `<span class="fl-meta-item">☎ ${phone}</span>` : '',
+    city  ? `<span class="fl-meta-item">📍 ${city}</span>`  : ''
+  ].filter(Boolean).join('');
+
+  const senHtml = (sen.label || sen.years != null || sen.score != null) ? `
+    <div class="fl-seniority">
+      ${sen.label ? `<div class="fl-sen-label">${sen.label}</div>` : ''}
+      <div class="fl-sen-meta">
+        ${sen.years != null ? `<span class="fl-sen-years">${sen.years} ans exp.</span>` : ''}
+        ${sen.score != null ? `<span class="fl-sen-score">${Math.round(sen.score * 100)}%</span>` : ''}
+      </div>
+    </div>` : '';
+
+  const el = qs('freelanceCard');
+  el.innerHTML = `
+    <div class="card fl-card">
+      <div class="fl-photo-wrap">${photoHtml}</div>
+      <div class="fl-info">
+        ${name  ? `<div class="fl-name">${name}</div>`   : ''}
+        ${title ? `<div class="fl-title">${title}</div>` : ''}
+        ${metaItems ? `<div class="fl-meta">${metaItems}</div>`   : ''}
+        ${badges    ? `<div class="fl-badges">${badges}</div>`    : ''}
+      </div>
+      ${senHtml}
+    </div>`;
+  el.style.display = '';
+}
+
+/* ── TECH STACK + GLOBAL NOTIONS ── */
+function renderTechNotionsSection(tech, notions) {
+  const hasTech    = tech && typeof tech === 'object' && Object.values(tech).some(v => Array.isArray(v) && v.length);
+  const hasNotions = notions && notions.length;
+  if (!hasTech && !hasNotions) return;
+
+  const el = qs('techNotionsSection');
+  el.innerHTML = `
+    <div class="card tn-col">
+      <div class="tn-title">Stack Technique</div>
+      ${hasTech ? renderTechStack(tech) : '<p class="empty-state">Non disponible</p>'}
+    </div>
+    <div class="card tn-col">
+      <div class="tn-title">Notions Transversales</div>
+      ${hasNotions ? renderNotions(notions) : '<p class="empty-state">Non disponible</p>'}
+    </div>`;
+  el.style.display = 'flex';
+}
+
+function renderTechStack(tech) {
+  const keys = Object.keys(tech).filter(k => Array.isArray(tech[k]) && tech[k].length);
+  return keys.map(key => {
+    const c = TECH_COLORS[key] || { bg:'rgba(255,255,255,0.06)', border:'rgba(255,255,255,0.2)', text:'rgba(255,255,255,0.72)' };
+    const pills = tech[key].map(item => {
+      const nm    = typeof item === 'string' ? item : (item.name || item.label || String(item));
+      const level = typeof item === 'object' ? (item.level ?? item.proficiency ?? null) : null;
+      const opa   = level != null ? Math.max(0.45, level / 5) : 1;
+      const tip   = level != null ? `${nm} · ${level}/5` : nm;
+      return `<span class="tech-pill" style="--tc-bg:${c.bg};--tc-border:${c.border};--tc-text:${c.text};opacity:${opa}" title="${tip}">${nm}</span>`;
+    }).join('');
+    return `
+      <div class="tech-group">
+        <div class="tech-group-label">${TECH_LABEL_FR[key] || key}</div>
+        <div class="tech-pills">${pills}</div>
+      </div>`;
+  }).join('');
 }
 
 function confLabel(c) {
