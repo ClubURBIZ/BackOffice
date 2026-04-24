@@ -28,10 +28,7 @@
       <!-- Titre de mission -->
       <div class="sim-section">
         <div class="sim-sec-label">Titre de la Mission</div>
-        <label class="sim-field-label">
-          <span>Description</span>
-          <input type="text" id="f-titre" value="Mission développeur fullstack .NET/Angular" class="sim-text-in" autocomplete="off" />
-        </label>
+        <input type="text" id="f-titre" value="Mission développeur fullstack .NET/Angular" class="sim-text-in" autocomplete="off" />
       </div>
 
       <!-- Identité -->
@@ -114,35 +111,31 @@
         <div class="sim-row2">
           <label class="sim-field-label">
             <span>Commissionnaire</span>
-            <div class="sim-pct-grp">
-              <input type="number" id="f-pc" value="1" min="0" max="10" step="0.5" class="sim-pct-in" />
-              <span>%</span>
+            <div class="sim-role-row">
+              <div class="sim-pct-grp"><input type="number" id="f-pc" value="1" min="0" max="10" step="0.5" class="sim-pct-in" /><span>%</span></div>
+              <input type="text" id="f-name-pc" value="URBIZ CLUB" class="sim-text-in sim-name-in" autocomplete="off" />
             </div>
-            <input type="text" id="f-name-pc" value="URBIZ CLUB" class="sim-text-in sim-name-in" autocomplete="off" />
           </label>
           <label class="sim-field-label">
             <span>Entremetteur</span>
-            <div class="sim-pct-grp">
-              <input type="number" id="f-pe" value="1" min="0" max="10" step="0.5" class="sim-pct-in" />
-              <span>%</span>
+            <div class="sim-role-row">
+              <div class="sim-pct-grp"><input type="number" id="f-pe" value="1" min="0" max="10" step="0.5" class="sim-pct-in" /><span>%</span></div>
+              <input type="text" id="f-name-pe" value="URBIZ CLUB" class="sim-text-in sim-name-in" autocomplete="off" />
             </div>
-            <input type="text" id="f-name-pe" value="URBIZ CLUB" class="sim-text-in sim-name-in" autocomplete="off" />
           </label>
           <label class="sim-field-label" id="parrain-field">
             <span>Parrain <small id="parrain-note">Premium / Elite</small></span>
-            <div class="sim-pct-grp">
-              <input type="number" id="f-pp" value="0" min="0" max="10" step="0.5" class="sim-pct-in" disabled />
-              <span>%</span>
+            <div class="sim-role-row">
+              <div class="sim-pct-grp"><input type="number" id="f-pp" value="0" min="0" max="10" step="0.5" class="sim-pct-in" disabled /><span>%</span></div>
+              <input type="text" id="f-name-pp" value="URBIZ CLUB" class="sim-text-in sim-name-in" autocomplete="off" disabled />
             </div>
-            <input type="text" id="f-name-pp" value="URBIZ CLUB" class="sim-text-in sim-name-in" autocomplete="off" disabled />
           </label>
           <label class="sim-field-label">
             <span>Ambassadeur</span>
-            <div class="sim-pct-grp">
-              <input type="number" id="f-pa" value="1" min="0" max="10" step="0.5" class="sim-pct-in" />
-              <span>%</span>
+            <div class="sim-role-row">
+              <div class="sim-pct-grp"><input type="number" id="f-pa" value="1" min="0" max="10" step="0.5" class="sim-pct-in" /><span>%</span></div>
+              <input type="text" id="f-name-pa" value="URBIZ CLUB" class="sim-text-in sim-name-in" autocomplete="off" />
             </div>
-            <input type="text" id="f-name-pa" value="URBIZ CLUB" class="sim-text-in sim-name-in" autocomplete="off" />
           </label>
         </div>
         <div class="sim-total-line">Service Club total : <strong id="out-total-sc">3 %</strong></div>

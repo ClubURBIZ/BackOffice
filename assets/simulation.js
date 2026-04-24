@@ -77,20 +77,16 @@ function scRow(title, name, amt, pct, isNA) {
   if (isNA) {
     return `
     <div class="fiche-sc-row fiche-sc-row--na">
-      <div class="fiche-sc-r-left">
-        <span class="fiche-sc-r-title">${title}</span>
-        <span class="fiche-sc-r-name">—</span>
-      </div>
+      <span class="fiche-sc-r-title">${title}</span>
       <div class="fiche-sc-r-dots"></div>
-      <div class="fiche-sc-r-right">
-        <span class="fiche-sc-r-amt">—</span>
-      </div>
+      <span class="fiche-sc-r-amt">—</span>
     </div>`;
   }
   return `
     <div class="fiche-sc-row">
-      <div class="fiche-sc-r-left">
+      <div class="fiche-sc-r-info">
         <span class="fiche-sc-r-title">${title}</span>
+        <span class="fiche-sc-r-sep">·</span>
         <span class="fiche-sc-r-name">${name}</span>
       </div>
       <div class="fiche-sc-r-dots"></div>
