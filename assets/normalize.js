@@ -12,13 +12,31 @@ const TECH_COLORS = {
   base_de_donnees: { bg:'rgba(171,71,188,0.12)', border:'rgba(171,71,188,0.35)', text:'#ce93d8' },
   methodologie:    { bg:'rgba(255,152,0,0.12)',  border:'rgba(255,152,0,0.35)',  text:'#ffb74d' },
   outil:           { bg:'rgba(233,30,99,0.12)',  border:'rgba(233,30,99,0.35)',  text:'#f48fb1' },
+  outil_design:    { bg:'rgba(233,30,99,0.12)',  border:'rgba(233,30,99,0.35)',  text:'#f48fb1' },
   cloud:           { bg:'rgba(3,169,244,0.12)',  border:'rgba(3,169,244,0.35)',  text:'#81d4fa' },
   autre:           { bg:'rgba(255,255,255,0.06)', border:'rgba(255,255,255,0.2)', text:'rgba(255,255,255,0.72)' }
 };
 const TECH_LABEL_FR = {
-  langage:'Langages', framework:'Frameworks', base_de_donnees:'Bases de donn\u00e9es',
-  methodologie:'M\u00e9thodologies', outil:'Outils', cloud:'Cloud', autre:'Autres'
+  langage:'Langages', framework:'Frameworks', base_de_donnees:'Bases de données',
+  methodologie:'Méthodologies', outil:'Outils', outil_design:'Outils Design',
+  cloud:'Cloud', autre:'Autres'
 };
+
+/* String proficiency → numeric level 1-5 */
+const PROFICIENCY_MAP = {
+  expert:5, maitrise:5, maitris:5, avance:4, avanced:4,
+  pratique:3, intermediaire:3, familier:3, confirme:3,
+  notions:2, debutant:1
+};
+function proficiencyToLevel(p) {
+  if (typeof p === 'number') return p;
+  if (p == null) return null;
+  const k = String(p).toLowerCase()
+    .replace(/[éèêë]/g,'e').replace(/[àâä]/g,'a').replace(/[ùûü]/g,'u')
+    .replace(/[ôö]/g,'o').replace(/[îï]/g,'i').replace(/ç/g,'c')
+    .replace(/[^a-z]/g,'');
+  return PROFICIENCY_MAP[k] ?? null;
+}
 
 /* Normalise a tech category key: strip accents, lowercase, spaces→_ */
 function techKey(s) {
@@ -28,6 +46,7 @@ function techKey(s) {
     .replace(/[îï]/g,'i').replace(/ç/g,'c')
     .replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
 }
+
 
 const LOAD_STEPS = [
   'Extraction du CV brut via MISTRAL…',
@@ -144,7 +163,10 @@ function renderP34(raw) {
   const root = Array.isArray(raw) ? raw[0] : raw;
 
   allProfiles  = root.profiles || root.profils || root.profile_list || [];
-  allNotions   = root.freelance_notions || root.notions || [];
+  /* freelance_notions may be {T1:1,...} object — only use if array */
+  const rawNotions = root.freelance_notions;
+  allNotions = Array.isArray(rawNotions) ? rawNotions
+    : (Array.isArray(root.notions) ? root.notions : []);
   allFreelance = root.freelance || null;
 
   if (!allProfiles.length) {
@@ -264,7 +286,7 @@ function renderProfile(idx) {
 
 /* ── FREELANCE IDENTITY CARD ── */
 function renderFreelanceCard(fl) {
-  const name    = fl.name || '';
+  const name    = fl.full_name || fl.name || [fl.first_name, fl.last_name].filter(Boolean).join(' ') || '';
   const title   = fl.current_title || fl.title || '';
   const email   = fl.email || '';
   const phone   = fl.phone || '';
@@ -275,13 +297,14 @@ function renderFreelanceCard(fl) {
   const tjm     = fl.tjm || fl.daily_rate || fl.taux_journalier || null;
   const remote  = fl.remote_work || fl.remote || false;
   const driving = fl.driving_license || fl.permis_b || false;
-  const warning = fl.coherence_warning === true;
 
   const senObj   = fl.seniority || {};
   const senLabel = senObj.label || fl.seniority_label || '';
-  const senYears = senObj.years ?? fl.seniority_years ?? null;
+  const senYears = senObj.years ?? senObj.seniority_years ?? fl.seniority_years ?? null;
   const senScore = senObj.score ?? fl.seniority_score ?? null;
   const scoreDisp= senScore != null ? (senScore > 1 ? Math.round(senScore) : Math.round(senScore * 100)) : null;
+  const warning  = senObj.coherence_warning === true || fl.coherence_warning === true;
+  const warnNote = senObj.coherence_note || 'Incohérence détectée — à valider';
 
   const photoHtml = photo
     ? `<img src="${photo.startsWith('data:') ? photo : 'data:image/jpeg;base64,' + photo}" alt="" />`
@@ -293,40 +316,37 @@ function renderFreelanceCard(fl) {
   ].filter(Boolean).join('');
 
   const loc = [postal, city].filter(Boolean).join(' ');
+  const lnHref = linkedin ? (linkedin.startsWith('http') ? linkedin : 'https://' + linkedin) : '';
   const metaItems = [
     email    ? `<span class="fl-meta-item">✉ ${email}</span>` : '',
     phone    ? `<span class="fl-meta-item">☎ ${phone}</span>` : '',
     loc      ? `<span class="fl-meta-item">📍 ${loc}</span>`  : '',
     tjm      ? `<span class="fl-meta-item fl-tjm">TJM ${tjm}€/j</span>` : '',
-    linkedin ? `<a class="fl-meta-item fl-linkedin" href="${linkedin}" target="_blank" rel="noopener">🔗 LinkedIn</a>` : ''
+    linkedin ? `<a class="fl-meta-item fl-linkedin" href="${lnHref}" target="_blank" rel="noopener">🔗 LinkedIn</a>` : ''
   ].filter(Boolean).join('');
-
-  const senHtml = (senLabel || senYears != null || scoreDisp != null) ? `
-    <div class="fl-seniority">
-      ${senLabel ? `<div class="fl-sen-label">${senLabel}</div>` : ''}
-      <div class="fl-sen-meta">
-        ${senYears != null ? `<span class="fl-sen-years">${senYears} ans</span>` : ''}
-        ${scoreDisp != null ? `<span class="fl-sen-score">${scoreDisp}%</span>` : ''}
-      </div>
-    </div>` : '';
 
   const el = qs('freelanceCard');
   el.innerHTML = `
     <div class="card fl-card">
       <div class="fl-photo-wrap">${photoHtml}</div>
       <div class="fl-info">
-        <div class="fl-name-row">
-          ${name  ? `<span class="fl-name">${name}</span>` : ''}
-          ${warning ? `<span class="fl-warning" title="Incohérence détectée dans le CV">⚠</span>` : ''}
-        </div>
-        ${title ? `<div class="fl-title">${title}</div>` : ''}
-        ${metaItems ? `<div class="fl-meta">${metaItems}</div>`   : ''}
-        ${badges    ? `<div class="fl-badges">${badges}</div>`    : ''}
+        ${name ? `<div class="fl-name">${name}</div>` : ''}
+        ${metaItems ? `<div class="fl-meta">${metaItems}</div>` : ''}
+        ${badges    ? `<div class="fl-badges">${badges}</div>` : ''}
       </div>
-      ${senHtml}
+      <div class="fl-seniority">
+        ${title ? `<div class="fl-current-title">${title}</div>` : ''}
+        ${warning ? `<div class="fl-coherence-warn" title="${warnNote}">⚠ À valider</div>` : ''}
+        ${senLabel ? `<div class="fl-sen-label">${senLabel}</div>` : ''}
+        <div class="fl-sen-meta">
+          ${senYears != null ? `<span class="fl-sen-years">${senYears} ans</span>` : ''}
+          ${scoreDisp != null ? `<span class="fl-sen-score">${scoreDisp}%</span>` : ''}
+        </div>
+      </div>
     </div>`;
   el.style.display = '';
 }
+
 
 /* ── TECH STACK + GLOBAL NOTIONS ── */
 function renderTechNotionsSection(tech, notions) {
@@ -364,7 +384,7 @@ function normalizeTechStack(tech) {
     const grouped = {};
     tech.items.forEach(item => {
       const rawCat = typeof item === 'object'
-        ? (item.category || item.categorie || item.type || item.famille || 'autre') : 'autre';
+        ? (item.tech_category || item.category || item.categorie || item.type || item.famille || 'autre') : 'autre';
       const cat = techKey(rawCat);
       (grouped[cat] = grouped[cat] || []).push(item);
     });
@@ -386,14 +406,16 @@ function renderTechGroups(grouped) {
   return Object.keys(grouped).map(key => {
     const c = TECH_COLORS[key] || TECH_COLORS.autre;
     const pills = grouped[key].map(item => {
-      /* Support French field names: nom/name, maitrise/niveau/level */
+      /* Support French/custom field names: tech_name/name/nom, proficiency as string or number */
       const nm    = typeof item === 'string' ? item
-        : (item.name || item.nom || item.label || item.titre || item.title || '');
+        : (item.tech_name || item.name || item.nom || item.label || item.titre || item.title || '');
       if (!nm) return '';
-      const level = typeof item === 'object'
+      const rawLv = typeof item === 'object'
         ? (item.level ?? item.maitrise ?? item.niveau ?? item.proficiency ?? null) : null;
+      const level = proficiencyToLevel(rawLv);
       const opa   = level != null ? Math.max(0.45, level / 5) : 1;
-      const lvBadge = level != null ? `<span class="tech-pill-lv">${level}</span>` : '';
+      const PROF_LABEL = { 5:'★★★', 4:'★★', 3:'★', 2:'◐', 1:'○' };
+      const lvBadge = level != null ? `<span class="tech-pill-lv">${PROF_LABEL[level] || level}</span>` : '';
       return `<span class="tech-pill" style="--tc-bg:${c.bg};--tc-border:${c.border};--tc-text:${c.text};opacity:${opa}" title="${nm}${level != null ? ' · ' + level + '/5' : ''}">${nm}${lvBadge}</span>`;
     }).filter(Boolean).join('');
     if (!pills) return '';
@@ -567,27 +589,56 @@ function levelDots(n, total, cls) {
 
 function toggleSkill(head) { head.closest('.skill-card').classList.toggle('open'); }
 
-/* ── NOTIONS (per-profile: candidat + chevron cible) ── */
+/* ── NOTIONS ── */
+
+/* 5-star row with chevron target above expected position */
+function nstarsWithTarget(fl, el, total) {
+  const ok = fl >= el;
+  return Array.from({ length: total }, (_, i) => {
+    const pos = i + 1;
+    const isTarget = el > 0 && pos === el;
+    const chevCls  = isTarget ? ('star-target-chev ' + (ok ? 'nt-ok' : 'nt-gap')) : 'star-target-chev star-target-empty';
+    const starCls  = i < fl ? (ok ? 'star star-filled' : 'star star-neutral') : 'star star-empty';
+    return `<span class="star-col"><span class="${chevCls}">${isTarget ? '▾' : ''}</span><span class="${starCls}">★</span></span>`;
+  }).join('');
+}
+
+/* Per-profile notions: chevron above expected star, warning badge at right if gap */
 function renderNotions(notions) {
   if (!notions || !notions.length) return '<p class="empty-state">Non disponible</p>';
   return `<div class="notions-list">${notions.map(n => {
     const fl = n.freelance_level ?? n.freelance ?? 0;
     const el = n.expected_level  ?? n.expected  ?? 0;
     const ok = fl >= el;
-    const target = el > 0
-      ? `<span class="notion-target ${ok ? 'nt-ok' : 'nt-gap'}" title="Attendu : ${el}/5">▾${el}</span>`
-      : '';
+    const warn = (!ok && el > 0) ? `<span class="notion-target nt-gap" title="Attendu : ${el}/5">▾${el}</span>` : '';
     return `
       <div class="notion-row">
         <span class="notion-name">${n.label || n.notion_name || n.name || ''}</span>
         <div class="notion-stars-row">
-          ${nstars(fl, el, 5)}
+          ${nstarsWithTarget(fl, el, 5)}
           <span class="notion-lv">${fl}/5</span>
-          ${target}
+          ${warn}
         </div>
       </div>`;
   }).join('')}</div>`;
 }
+
+/* Global notions (candidat only, no expected) */
+function renderFreelanceNotions(notions) {
+  if (!notions || !notions.length) return '<p class="empty-state">Sélectionne un profil ci-dessous</p>';
+  return `<div class="notions-list">${notions.map(n => {
+    const fl = n.freelance_level ?? n.freelance ?? 0;
+    return `
+      <div class="notion-row">
+        <span class="notion-name">${n.label || n.notion_name || n.name || ''}</span>
+        <div class="notion-stars-row">
+          ${nstarsWithTarget(fl, 0, 5)}
+          <span class="notion-lv">${fl}/5</span>
+        </div>
+      </div>`;
+  }).join('')}</div>`;
+}
+
 
 function nstars(filled, threshold, total) {
   return Array.from({ length: total }, (_, i) => {

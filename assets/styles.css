@@ -1095,7 +1095,23 @@ a:hover { text-decoration: underline; }
   min-width: 100px;
 }
 
-.notion-stars-row { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.notion-stars-row { display: flex; align-items: flex-end; gap: 3px; flex-shrink: 0; }
+
+/* Star column: chevron above + star below */
+.star-col { display: flex; flex-direction: column; align-items: center; gap: 1px; flex-shrink: 0; }
+
+.star-target-chev {
+  font-size: 0.58rem;
+  line-height: 1;
+  text-align: center;
+  width: 0.9rem;
+  min-height: 0.65rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.star-target-empty { visibility: hidden; }
+.star-neutral { color: rgba(255,255,255,0.25); }
 
 .notion-lv { font-size: 0.63rem; color: var(--text-faint); width: 22px; text-align: right; flex-shrink: 0; }
 
@@ -1224,11 +1240,31 @@ a:hover { text-decoration: underline; }
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  padding: 12px 18px;
+  padding: 10px 16px;
   border-radius: 14px;
   background: rgba(0,212,170,0.06);
   border: 1px solid rgba(0,212,170,0.18);
   text-align: center;
+  min-width: 120px;
+}
+
+.fl-current-title {
+  font-size: 0.72rem;
+  color: var(--text-soft);
+  font-weight: 500;
+  line-height: 1.3;
+  margin-bottom: 2px;
+}
+
+.fl-coherence-warn {
+  font-size: 0.63rem;
+  font-weight: 700;
+  color: #ffb300;
+  background: rgba(255,179,0,0.08);
+  border: 1px solid rgba(255,179,0,0.22);
+  border-radius: 4px;
+  padding: 1px 6px;
+  cursor: help;
 }
 
 .fl-sen-label {
