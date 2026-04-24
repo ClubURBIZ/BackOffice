@@ -3,12 +3,12 @@
    ═══════════════════════════════════════════════════ */
 
 /* ── Page container ── */
-.sim-page { max-width: 1240px; }
+.sim-page { max-width: 1280px; }
 
 .sim-layout {
   display: grid;
-  grid-template-columns: 360px 1fr;
-  gap: 24px;
+  grid-template-columns: 340px 1fr;
+  gap: 28px;
   align-items: start;
 }
 
@@ -16,8 +16,15 @@
 .sim-config {
   position: sticky;
   top: 24px;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+  overflow-x: hidden;
   margin-bottom: 0 !important;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,212,170,0.25) transparent;
 }
+.sim-config::-webkit-scrollbar { width: 4px; }
+.sim-config::-webkit-scrollbar-thumb { background: rgba(0,212,170,0.25); border-radius: 2px; }
 
 .sim-rgn-btn,
 .sim-print-btn {
@@ -27,34 +34,34 @@
 }
 
 .sim-panel-title {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--text-faint);
-  padding-bottom: 14px;
-  margin-bottom: 18px;
+  padding-bottom: 10px;
+  margin-bottom: 14px;
   border-bottom: 1px solid var(--glass-border);
 }
 
 .sim-section {
-  padding-bottom: 18px;
-  margin-bottom: 18px;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
   border-bottom: 1px solid var(--glass-border);
 }
 
 .sim-section:last-of-type {
   border-bottom: none;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .sim-sec-label {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.7px;
   text-transform: uppercase;
   color: var(--text-soft);
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .sim-sec-label small {
@@ -62,15 +69,15 @@
   text-transform: none;
   letter-spacing: 0;
   color: var(--text-faint);
-  margin-left: 6px;
+  margin-left: 5px;
 }
 
 .sim-auto-badge {
   font-style: normal;
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   font-weight: 500;
   color: var(--teal);
-  margin-left: 6px;
+  margin-left: 5px;
   letter-spacing: 0;
   text-transform: none;
 }
@@ -79,14 +86,14 @@
 .sim-row2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 8px;
 }
 
 .sim-field-label {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  font-size: 0.72rem;
+  gap: 4px;
+  font-size: 0.7rem;
   color: var(--text-soft);
 }
 
@@ -95,10 +102,10 @@
   width: 100%;
   background: rgba(255,255,255,0.06);
   border: 1px solid var(--glass-border);
-  border-radius: 10px;
+  border-radius: 9px;
   color: var(--text);
-  padding: 9px 12px;
-  font-size: 0.88rem;
+  padding: 8px 11px;
+  font-size: 0.86rem;
   font-family: inherit;
   outline: none;
   transition: border-color 0.2s;
@@ -107,10 +114,19 @@
 .sim-text-in:focus { border-color: var(--teal); }
 .sim-text-in:disabled { opacity: 0.3; cursor: not-allowed; }
 
-/* Small name input inside role fields */
+/* Role row: % + name side by side */
+.sim-role-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.sim-role-row .sim-pct-grp { flex-shrink: 0; }
+.sim-role-row .sim-text-in.sim-name-in { flex: 1; min-width: 0; }
+
+/* Small name input */
 .sim-text-in.sim-name-in {
-  padding: 5px 8px;
-  font-size: 0.74rem;
+  padding: 5px 7px;
+  font-size: 0.72rem;
   border-radius: 6px;
   color: var(--text-faint);
 }
@@ -119,7 +135,7 @@
 /* Trust label radio badges */
 .sim-trust-grp {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
@@ -128,9 +144,9 @@
 
 .stb {
   display: inline-block;
-  padding: 7px 14px;
+  padding: 6px 13px;
   border-radius: 20px;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.4px;
   cursor: pointer;
@@ -181,29 +197,27 @@
 /* Region toggle */
 .sim-region-grp {
   display: flex;
-  gap: 8px;
+  gap: 7px;
 }
 
 .sim-rgn-btn {
   flex: 1;
-  padding: 9px 10px;
-  border-radius: 12px;
+  padding: 8px 10px;
+  border-radius: 10px;
   border: 1px solid var(--glass-border) !important;
   color: var(--text-soft);
   cursor: pointer;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 600;
   font-family: inherit;
   transition: all 0.2s;
 }
-
 .sim-rgn-btn:hover {
   border-color: rgba(0,212,170,0.35) !important;
   color: var(--teal);
   transform: none !important;
   box-shadow: none !important;
 }
-
 .sim-rgn-btn.active {
   background: rgba(0,212,170,0.12) !important;
   border-color: rgba(0,212,170,0.42) !important;
@@ -218,12 +232,12 @@
 }
 
 .sim-tj-in {
-  width: 110px;
+  width: 100px;
   background: rgba(255,255,255,0.06);
   border: 1px solid var(--glass-border);
-  border-radius: 10px;
+  border-radius: 9px;
   color: var(--text);
-  padding: 7px 10px;
+  padding: 6px 9px;
   font-size: 1.05rem;
   font-weight: 700;
   font-family: inherit;
@@ -231,25 +245,25 @@
   transition: border-color 0.2s;
 }
 .sim-tj-in:focus { border-color: var(--teal); }
-.sim-tj-unit { color: var(--text-faint); font-size: 0.82rem; }
+.sim-tj-unit { color: var(--text-faint); font-size: 0.8rem; }
 
 /* Percentage fields */
 .sim-pct-grp {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   color: var(--text-soft);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
 }
 
 .sim-pct-in {
-  width: 56px;
+  width: 52px;
   background: rgba(255,255,255,0.06);
   border: 1px solid var(--glass-border);
-  border-radius: 8px;
+  border-radius: 7px;
   color: var(--text);
-  padding: 6px 7px;
-  font-size: 0.88rem;
+  padding: 5px 6px;
+  font-size: 0.86rem;
   font-family: inherit;
   outline: none;
   transition: border-color 0.2s;
@@ -258,9 +272,9 @@
 .sim-pct-in:disabled { opacity: 0.3; cursor: not-allowed; }
 
 .sim-total-line {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   color: var(--text-faint);
-  margin-top: 8px;
+  margin-top: 6px;
 }
 .sim-total-line strong { color: var(--teal); }
 
@@ -273,7 +287,7 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 1.5px;
   text-transform: uppercase;
@@ -285,8 +299,8 @@
   border-radius: 8px;
   color: var(--text-soft);
   cursor: pointer;
-  font-size: 0.8rem;
-  padding: 6px 12px;
+  font-size: 0.78rem;
+  padding: 5px 11px;
   font-family: inherit;
   transition: all 0.2s;
 }
@@ -298,36 +312,41 @@
 }
 
 /* ════════════════════════════════════════════
-   FICHE MISSION — design clair
+   FICHE MISSION — glass card
    ════════════════════════════════════════════ */
 .fiche {
-  background: #ffffff;
-  border-radius: 16px;
+  background: rgba(255,255,255,0.93);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  border-radius: 18px;
   overflow: hidden;
-  box-shadow: 0 12px 48px rgba(0,0,0,0.24);
+  border: 1.5px solid rgba(255,255,255,0.7);
+  box-shadow:
+    0 28px 72px rgba(0,0,0,0.32),
+    inset 0 1px 0 rgba(255,255,255,0.9);
   font-family: 'Segoe UI', system-ui, sans-serif;
   color: #0d2247;
-  max-width: 580px;
+  max-width: 600px;
 }
 
 /* En-tête */
 .fiche-head {
-  padding: 26px 32px 20px;
+  padding: 22px 30px 16px;
   text-align: center;
-  background: #fff;
 }
 
 .fiche-title {
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   font-weight: 900;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.2px;
   color: #0d2247;
+  line-height: 1.3;
 }
 
 .fiche-subtitle {
-  font-size: 0.74rem;
+  font-size: 0.7rem;
   color: #8aaec8;
-  margin-top: 6px;
+  margin-top: 5px;
   font-style: italic;
 }
 
@@ -336,90 +355,88 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 13px 32px;
-  border-top: 2.5px solid #0d2247;
-  border-bottom: 2.5px solid #0d2247;
-  background: #fff;
+  padding: 11px 30px;
+  border-top: 2px solid #0d2247;
+  border-bottom: 2px solid #0d2247;
 }
 
 .fiche-client-lbl {
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.4px;
   color: #0d2247;
   text-transform: uppercase;
 }
 
 .fiche-client-val {
-  font-size: 1.9rem;
-  font-weight: 700;
+  font-size: 1.8rem;
+  font-weight: 800;
   color: #0d2247;
   line-height: 1;
 }
 
-/* Section Markup (au-dessus du TJ) */
+/* ── MARKUP (au-dessus du TJ) ── */
 .fiche-markup-section {
   display: flex;
   align-items: center;
-  padding: 18px 32px 0;
-  gap: 20px;
-  background: #fff;
+  padding: 14px 30px 0;
+  gap: 18px;
 }
 
 .fiche-ms-desc { flex: 1; }
 
 .fiche-mu-tag {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
   color: #0d2247;
-  margin-bottom: 10px;
+  margin-bottom: 7px;
 }
 
 .fiche-mu-pct {
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   font-weight: 400;
   color: #8aaec8;
-  margin-left: 4px;
+  margin-left: 3px;
 }
 
 .fiche-mu-logo {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: 9px;
+  margin-bottom: 6px;
 }
 
 .fiche-mu-logo-icon {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   border: 2.5px solid #00a08c;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: #00a08c;
   flex-shrink: 0;
   font-weight: 700;
 }
 
 .fiche-mu-logo-text {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 900;
   color: #0d2247;
   letter-spacing: 2px;
 }
 
 .fiche-mu-note {
-  font-size: 0.67rem;
-  color: #8aaec8;
-  line-height: 1.55;
+  font-size: 0.62rem;
+  color: #a0b8cc;
+  line-height: 1.5;
   font-style: italic;
-  max-width: 190px;
+  max-width: 180px;
 }
 
 .fiche-ms-boxes {
-  width: 195px;
+  width: 180px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -429,10 +446,10 @@
 .fiche-box-urbiz {
   background: #0d2247;
   color: #fff;
-  padding: 18px 16px;
+  padding: 14px 14px;
   border-radius: 8px;
   text-align: center;
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   font-weight: 700;
 }
 
@@ -445,125 +462,137 @@
   color: #fff;
   border-radius: 0 0 8px 8px;
   text-align: center;
-  padding: 10px 14px;
+  padding: 8px 12px;
 }
 
 .fiche-box-var-amt {
   display: block;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 700;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }
 
 .fiche-box-var-sub {
-  font-size: 0.66rem;
+  font-size: 0.62rem;
   opacity: 0.9;
 }
 
-/* Barre TJ FACTURÉ À URBIZ — séparateur central */
+/* ── BARRE TJ FACTURÉ À URBIZ (séparateur pivot) ── */
 .fiche-tj-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 32px;
-  margin-top: 18px;
+  padding: 13px 30px 13px 26px;
+  margin-top: 16px;
   background: #0d2247;
+  border-left: 4px solid #00c9a7;
 }
 
 .fiche-tj-bar-label {
-  font-size: 0.73rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 0.8px;
+  letter-spacing: 1px;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.6);
+  color: rgba(255,255,255,0.75);
 }
 
 .fiche-tj-bar-val {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: #fff;
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: #00c9a7;
 }
 
-/* Bloc Service Club — style facture (en-dessous du TJ) */
+/* ── SERVICE CLUB (en-dessous du TJ) ── */
 .fiche-service-club {
-  background: #f7fafc;
-  padding: 16px 32px 20px;
+  background: rgba(244,248,251,0.6);
+  padding: 12px 30px 14px;
+  border-bottom: 1px solid rgba(13,34,71,0.08);
 }
 
 .fiche-sc-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .fiche-sc-logo {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 8px;
 }
 
 .fiche-sc-logo-icon {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   border: 2px solid #00a08c;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.7rem;
+  font-size: 0.62rem;
   color: #00a08c;
   flex-shrink: 0;
 }
 
 .fiche-sc-logo-text {
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   font-weight: 800;
   color: #0d2247;
-  letter-spacing: 0.2px;
 }
 
 .fiche-sc-badge {
+  font-size: 0.67rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
   background: rgba(22,163,74,0.1);
   color: #16a34a;
-  font-size: 0.7rem;
-  font-weight: 700;
-  padding: 3px 9px;
-  border-radius: 20px;
 }
 
+/* Lignes de rôle — une seule ligne par rôle */
 .fiche-sc-row {
   display: flex;
   align-items: center;
-  padding: 7px 0;
-  border-top: 1px solid #e4edf5;
+  height: 28px;
+  border-top: 1px solid rgba(228,237,245,0.8);
 }
 
-.fiche-sc-r-left {
-  min-width: 150px;
+.fiche-sc-r-info {
   display: flex;
-  flex-direction: column;
-  gap: 1px;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  flex-shrink: 0;
+  max-width: 200px;
 }
 
 .fiche-sc-r-title {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
   color: #117a65;
   white-space: nowrap;
 }
 
+.fiche-sc-r-sep {
+  font-size: 0.62rem;
+  color: #a0b8cc;
+}
+
 .fiche-sc-r-name {
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   font-weight: 600;
-  color: #4a6a8c;
+  color: #6a8aa8;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100px;
 }
 
 .fiche-sc-r-dots {
   flex: 1;
   height: 0;
-  border-bottom: 1.5px dashed rgba(0,160,140,0.3);
+  border-bottom: 1.5px dashed rgba(0,160,140,0.25);
   align-self: center;
   margin: 0 8px;
 }
@@ -571,37 +600,38 @@
 .fiche-sc-r-right {
   display: flex;
   align-items: baseline;
-  gap: 4px;
+  gap: 3px;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .fiche-sc-r-amt {
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   font-weight: 700;
   color: #0d2247;
 }
 
 .fiche-sc-r-pct {
-  font-size: 0.67rem;
+  font-size: 0.62rem;
   color: #8aaec8;
 }
 
+/* N/A rows */
 .fiche-sc-row--na .fiche-sc-r-title { color: #b0c8da; }
-.fiche-sc-row--na .fiche-sc-r-name  { color: #b0c8da; }
-.fiche-sc-row--na .fiche-sc-r-dots  { border-color: rgba(180,200,220,0.3); }
+.fiche-sc-row--na .fiche-sc-r-dots  { border-color: rgba(180,200,220,0.25); }
 .fiche-sc-row--na .fiche-sc-r-amt   { color: #b0c8da; }
 
 .fiche-sc-total {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-top: 2px solid #0d2247;
-  padding-top: 10px;
-  margin-top: 6px;
+  border-top: 1.5px solid #0d2247;
+  padding-top: 7px;
+  margin-top: 3px;
 }
 
 .fiche-sc-total-lbl {
-  font-size: 0.75rem;
+  font-size: 0.68rem;
   font-weight: 700;
   color: #0d2247;
   text-transform: uppercase;
@@ -609,62 +639,61 @@
 }
 
 .fiche-sc-total-amt {
-  font-size: 1rem;
+  font-size: 0.92rem;
   font-weight: 700;
   color: #117a65;
 }
 
 .fiche-sc-total-pct {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   font-weight: 400;
   color: #8aaec8;
 }
 
-/* Section membre + TJ final */
+/* ── SECTION BAS : identité + TJ FINAL (héros) ── */
 .fiche-bottom {
   display: flex;
   align-items: stretch;
-  padding: 16px 32px 0;
-  gap: 20px;
-  background: #fff;
+  min-height: 110px;
 }
 
 .fiche-b-left {
   flex: 1;
+  padding: 18px 30px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .fiche-member-name {
   font-size: 1.05rem;
   font-weight: 900;
   color: #0d2247;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.2px;
 }
 
 /* Badge label de confiance */
 .fiche-trust-pill {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
 }
 
 .fiche-trust-pill-dot {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 700;
   flex-shrink: 0;
 }
 
 .fiche-trust-pill-label {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 600;
 }
 
@@ -690,7 +719,7 @@
 }
 .ftp-elite .fiche-trust-pill-label { color: #f97316; }
 
-/* Couleurs par label : logo pastilles + badge service club */
+/* Couleurs par label */
 .fiche--initial .fiche-mu-logo-icon,
 .fiche--initial .fiche-sc-logo-icon { border-color: #16a34a; color: #16a34a; }
 .fiche--initial .fiche-sc-badge     { background: rgba(22,163,74,0.10); color: #16a34a; }
@@ -703,78 +732,97 @@
 .fiche--elite .fiche-sc-logo-icon   { border-color: #f97316; color: #f97316; }
 .fiche--elite .fiche-sc-badge       { background: rgba(249,115,22,0.10); color: #f97316; }
 
-/* Grande boîte TJ final perçu */
+/* ── TJ FINAL PERÇU — héros ── */
 .fiche-net-box {
-  width: 195px;
+  width: 220px;
   flex-shrink: 0;
-  background: #00c9a7;
-  border-radius: 8px;
-  padding: 20px 14px;
+  background: linear-gradient(160deg, #00c9a7 0%, #00a88c 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 4px;
+  padding: 20px 18px;
+  position: relative;
+  overflow: hidden;
+}
+
+.fiche-net-box::before {
+  content: '';
+  position: absolute;
+  top: -30px;
+  right: -30px;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.07);
 }
 
 .fiche-net-amt {
-  font-size: 1.55rem;
-  font-weight: 700;
+  font-size: 2.0rem;
+  font-weight: 800;
   color: #fff;
   line-height: 1;
   text-align: center;
+  letter-spacing: -0.5px;
 }
 
 .fiche-net-lbl {
   font-size: 0.72rem;
-  font-weight: 600;
-  color: rgba(255,255,255,0.9);
+  font-weight: 700;
+  color: rgba(255,255,255,0.92);
   text-align: center;
+  letter-spacing: 0.3px;
 }
 
 .fiche-net-sub {
-  font-size: 0.64rem;
-  color: rgba(255,255,255,0.7);
+  font-size: 0.62rem;
+  color: rgba(255,255,255,0.65);
   text-align: center;
 }
 
 /* Note de bas de fiche */
 .fiche-foot {
-  padding: 14px 32px;
-  font-size: 0.68rem;
+  padding: 11px 30px;
+  font-size: 0.64rem;
   color: #8aaec8;
   text-align: center;
   font-style: italic;
   line-height: 1.6;
-  background: #f4f8fb;
-  border-top: 1px solid #e4edf5;
-  margin-top: 16px;
+  background: rgba(244,248,251,0.5);
+  border-top: 1px solid rgba(228,237,245,0.8);
 }
 
 /* ── Impression ── */
 @media print {
   body { background: #fff !important; }
   body::before { display: none !important; }
-  .topbar,
-  .sim-config,
-  .sim-preview-bar { display: none !important; }
+  .topbar, .sim-config, .sim-preview-bar { display: none !important; }
   .container { padding: 0 !important; max-width: 100% !important; }
   .sim-layout { display: block !important; }
-  .fiche { max-width: 100% !important; box-shadow: none !important; border-radius: 0 !important; }
+  .fiche {
+    max-width: 100% !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+    backdrop-filter: none !important;
+    border: none !important;
+  }
 }
 
 /* ── Responsive ── */
 @media (max-width: 960px) {
   .sim-layout { grid-template-columns: 1fr; }
-  .sim-config { position: static; }
+  .sim-config { position: static; max-height: none; }
 }
 
 @media (max-width: 640px) {
   .fiche-markup-section { flex-direction: column; align-items: stretch; }
   .fiche-ms-boxes { width: 100%; }
-  .fiche-sc-r-left { min-width: 120px; }
   .fiche-bottom { flex-direction: column; }
-  .fiche-net-box { width: 100%; }
+  .fiche-net-box { width: 100%; min-height: 100px; }
   .fiche-client-val { font-size: 1.5rem; }
-  .fiche-tj-bar-val { font-size: 1.1rem; }
+  .fiche-tj-bar-val { font-size: 1.2rem; }
+  .fiche-sc-r-name { display: none; }
+  .fiche-sc-r-sep  { display: none; }
 }
