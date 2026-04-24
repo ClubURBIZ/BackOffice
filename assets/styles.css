@@ -781,7 +781,7 @@ a:hover { text-decoration: underline; }
 }
 
 .mini-fill { height: 100%; border-radius: 999px; transition: width 0.8s ease; }
-.fill-d1 { background: var(--teal); }
+.fill-d1 { background: #ffb300; }
 .fill-d2 { background: #7c4dff; }
 .fill-d3 { background: var(--pink); }
 
@@ -1350,6 +1350,61 @@ a:hover { text-decoration: underline; }
   border-radius: 999px;
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.09);
+}
+
+/* ── FL CARD EXTRAS ── */
+
+.fl-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fl-warning {
+  font-size: 1rem;
+  color: #ffb300;
+  filter: drop-shadow(0 0 4px rgba(255,179,0,0.5));
+  flex-shrink: 0;
+  cursor: default;
+}
+
+.fl-linkedin {
+  color: #7c9dff;
+  text-decoration: none;
+}
+.fl-linkedin:hover { text-decoration: underline; }
+
+.fl-tjm {
+  color: var(--teal);
+  font-weight: 700;
+}
+
+/* ── TECH LEGEND ── */
+
+.tech-legend {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  flex-wrap: wrap;
+}
+
+.tech-legend span { font-size: 0.62rem; color: var(--text-faint); }
+.tech-legend-dot  { font-size: 0.7rem; color: var(--text-soft); }
+
+/* ── SLIM NOTION ROW (candidat only) ── */
+
+.notion-row-slim {
+  padding: 7px 12px;
+  gap: 10px;
+}
+
+.notion-row-slim .notion-stars-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
 /* ── RESPONSIVE ── */

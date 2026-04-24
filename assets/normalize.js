@@ -238,45 +238,65 @@ function renderProfile(idx) {
     gapEl.style.display = 'none';
   }
 
+  /* Update notions column with per-profile data (or fall back to global candidat-only) */
+  const notionsEl = qs('notionsGlobalContent');
+  if (notionsEl) {
+    const profNotions = (p.notions_transversales && p.notions_transversales.items) || [];
+    notionsEl.innerHTML = profNotions.length
+      ? renderNotions(profNotions)
+      : (allNotions.length ? renderFreelanceNotions(allNotions) : '<p class="empty-state">Non disponible</p>');
+  }
+
   qs('secMission').innerHTML      = renderMission(p.mission);
   qs('secActivities').innerHTML   = renderActivities((p.activities && p.activities.items) || (Array.isArray(p.activities) ? p.activities : []));
   qs('secCompetencies').innerHTML = renderCompetencies((p.competencies && p.competencies.items) || (Array.isArray(p.competencies) ? p.competencies : []));
-  qs('secNotions').innerHTML      = renderNotions((p.notions_transversales && p.notions_transversales.items) || []);
 }
 
 /* ── FREELANCE IDENTITY CARD ── */
 function renderFreelanceCard(fl) {
-  const name  = fl.name || '';
-  const title = fl.current_title || fl.title || '';
-  const email = fl.email || '';
-  const phone = fl.phone || '';
-  const city  = fl.city || '';
-  const photo = fl.photo_base64 || '';
-  const sen   = fl.seniority || {};
+  const name    = fl.name || '';
+  const title   = fl.current_title || fl.title || '';
+  const email   = fl.email || '';
+  const phone   = fl.phone || '';
+  const city    = fl.city || '';
+  const postal  = fl.postal_code || fl.zip_code || fl.code_postal || '';
+  const linkedin= fl.linkedin || fl.linkedin_url || fl.linkedin_profile || '';
+  const photo   = fl.photo_base64 || '';
+  const tjm     = fl.tjm || fl.daily_rate || fl.taux_journalier || null;
+  const remote  = fl.remote_work || fl.remote || false;
+  const driving = fl.driving_license || fl.permis_b || false;
+  const warning = fl.coherence_warning === true;
+
+  const senObj   = fl.seniority || {};
+  const senLabel = senObj.label || fl.seniority_label || '';
+  const senYears = senObj.years ?? fl.seniority_years ?? null;
+  const senScore = senObj.score ?? fl.seniority_score ?? null;
+  const scoreDisp= senScore != null ? (senScore > 1 ? Math.round(senScore) : Math.round(senScore * 100)) : null;
 
   const photoHtml = photo
     ? `<img src="${photo.startsWith('data:') ? photo : 'data:image/jpeg;base64,' + photo}" alt="" />`
     : `<div class="fl-photo-placeholder">${name ? name.charAt(0).toUpperCase() : '?'}</div>`;
 
   const badges = [
-    fl.is_freelance !== false ? '<span class="fl-badge fl-badge-freelance">Freelance</span>' : '',
-    fl.remote_work     ? '<span class="fl-badge fl-badge-remote">Télétravail</span>'   : '',
-    fl.mobility        ? '<span class="fl-badge fl-badge-mobility">Mobilité</span>'    : '',
-    fl.driving_license ? '<span class="fl-badge fl-badge-license">Permis B</span>'     : ''
+    remote  ? '<span class="fl-badge fl-badge-remote">Télétravail</span>'   : '',
+    driving ? '<span class="fl-badge fl-badge-license">Permis B</span>'     : ''
   ].filter(Boolean).join('');
 
+  const loc = [postal, city].filter(Boolean).join(' ');
   const metaItems = [
-    email ? `<span class="fl-meta-item">✉ ${email}</span>` : '',
-    phone ? `<span class="fl-meta-item">☎ ${phone}</span>` : '',
-    city  ? `<span class="fl-meta-item">📍 ${city}</span>`  : ''
+    email    ? `<span class="fl-meta-item">✉ ${email}</span>` : '',
+    phone    ? `<span class="fl-meta-item">☎ ${phone}</span>` : '',
+    loc      ? `<span class="fl-meta-item">📍 ${loc}</span>`  : '',
+    tjm      ? `<span class="fl-meta-item fl-tjm">TJM ${tjm}€/j</span>` : '',
+    linkedin ? `<a class="fl-meta-item fl-linkedin" href="${linkedin}" target="_blank" rel="noopener">🔗 LinkedIn</a>` : ''
   ].filter(Boolean).join('');
 
-  const senHtml = (sen.label || sen.years != null || sen.score != null) ? `
+  const senHtml = (senLabel || senYears != null || scoreDisp != null) ? `
     <div class="fl-seniority">
-      ${sen.label ? `<div class="fl-sen-label">${sen.label}</div>` : ''}
+      ${senLabel ? `<div class="fl-sen-label">${senLabel}</div>` : ''}
       <div class="fl-sen-meta">
-        ${sen.years != null ? `<span class="fl-sen-years">${sen.years} ans exp.</span>` : ''}
-        ${sen.score != null ? `<span class="fl-sen-score">${Math.round(sen.score * 100)}%</span>` : ''}
+        ${senYears != null ? `<span class="fl-sen-years">${senYears} ans</span>` : ''}
+        ${scoreDisp != null ? `<span class="fl-sen-score">${scoreDisp}%</span>` : ''}
       </div>
     </div>` : '';
 
@@ -285,7 +305,10 @@ function renderFreelanceCard(fl) {
     <div class="card fl-card">
       <div class="fl-photo-wrap">${photoHtml}</div>
       <div class="fl-info">
-        ${name  ? `<div class="fl-name">${name}</div>`   : ''}
+        <div class="fl-name-row">
+          ${name  ? `<span class="fl-name">${name}</span>` : ''}
+          ${warning ? `<span class="fl-warning" title="Incohérence détectée dans le CV">⚠</span>` : ''}
+        </div>
         ${title ? `<div class="fl-title">${title}</div>` : ''}
         ${metaItems ? `<div class="fl-meta">${metaItems}</div>`   : ''}
         ${badges    ? `<div class="fl-badges">${badges}</div>`    : ''}
@@ -297,40 +320,88 @@ function renderFreelanceCard(fl) {
 
 /* ── TECH STACK + GLOBAL NOTIONS ── */
 function renderTechNotionsSection(tech, notions) {
-  const hasTech    = tech && typeof tech === 'object' && Object.values(tech).some(v => Array.isArray(v) && v.length);
+  const grouped = tech ? normalizeTechStack(tech) : {};
+  const hasTech    = Object.keys(grouped).length > 0;
   const hasNotions = notions && notions.length;
   if (!hasTech && !hasNotions) return;
+
+  const legend = hasTech ? `
+    <div class="tech-legend">
+      <span class="tech-legend-dot" style="opacity:1">●</span><span>Maîtrisé</span>
+      <span class="tech-legend-dot" style="opacity:0.6">●</span><span>Intermédiaire</span>
+      <span class="tech-legend-dot" style="opacity:0.45">●</span><span>Notions</span>
+    </div>` : '';
 
   const el = qs('techNotionsSection');
   el.innerHTML = `
     <div class="card tn-col">
       <div class="tn-title">Stack Technique</div>
-      ${hasTech ? renderTechStack(tech) : '<p class="empty-state">Non disponible</p>'}
+      ${hasTech ? renderTechGroups(grouped) + legend : '<p class="empty-state">Non disponible</p>'}
     </div>
     <div class="card tn-col">
       <div class="tn-title">Notions Transversales</div>
-      ${hasNotions ? renderNotions(notions) : '<p class="empty-state">Non disponible</p>'}
+      <div id="notionsGlobalContent">
+        ${hasNotions ? renderFreelanceNotions(notions) : '<p class="empty-state">Non disponible</p>'}
+      </div>
     </div>`;
   el.style.display = 'flex';
 }
 
-function renderTechStack(tech) {
-  const keys = Object.keys(tech).filter(k => Array.isArray(tech[k]) && tech[k].length);
-  return keys.map(key => {
+/* Normalise tech_stack into { category: [items] } regardless of input shape */
+function normalizeTechStack(tech) {
+  /* Shape 1: { items: [{ name, level, category? }, ...] } */
+  if (Array.isArray(tech.items)) {
+    const grouped = {};
+    tech.items.forEach(item => {
+      const cat = (typeof item === 'object' ? (item.category || item.type || 'autre') : 'autre')
+        .toLowerCase().replace(/\s+/g, '_');
+      (grouped[cat] = grouped[cat] || []).push(item);
+    });
+    return grouped;
+  }
+  /* Shape 2: { langage: [...] } or { langage: { items: [...] } } */
+  const grouped = {};
+  Object.keys(tech).forEach(key => {
+    const val = tech[key];
+    if (Array.isArray(val) && val.length)                        grouped[key] = val;
+    else if (val && Array.isArray(val.items) && val.items.length) grouped[key] = val.items;
+  });
+  return grouped;
+}
+
+function renderTechGroups(grouped) {
+  return Object.keys(grouped).map(key => {
     const c = TECH_COLORS[key] || { bg:'rgba(255,255,255,0.06)', border:'rgba(255,255,255,0.2)', text:'rgba(255,255,255,0.72)' };
-    const pills = tech[key].map(item => {
-      const nm    = typeof item === 'string' ? item : (item.name || item.label || String(item));
+    const pills = grouped[key].map(item => {
+      const nm    = typeof item === 'string' ? item : (item.name || item.label || item.title || '');
+      if (!nm) return '';
       const level = typeof item === 'object' ? (item.level ?? item.proficiency ?? null) : null;
       const opa   = level != null ? Math.max(0.45, level / 5) : 1;
-      const tip   = level != null ? `${nm} · ${level}/5` : nm;
-      return `<span class="tech-pill" style="--tc-bg:${c.bg};--tc-border:${c.border};--tc-text:${c.text};opacity:${opa}" title="${tip}">${nm}</span>`;
-    }).join('');
+      return `<span class="tech-pill" style="--tc-bg:${c.bg};--tc-border:${c.border};--tc-text:${c.text};opacity:${opa}" title="${nm}${level != null ? ' · ' + level + '/5' : ''}">${nm}</span>`;
+    }).filter(Boolean).join('');
+    if (!pills) return '';
     return `
       <div class="tech-group">
         <div class="tech-group-label">${TECH_LABEL_FR[key] || key}</div>
         <div class="tech-pills">${pills}</div>
       </div>`;
   }).join('');
+}
+
+/* Global notions — candidat only (no expected level) */
+function renderFreelanceNotions(notions) {
+  if (!notions || !notions.length) return '<p class="empty-state">Non disponible</p>';
+  return `<div class="notions-list">${notions.map(n => {
+    const fl = n.freelance_level ?? n.freelance ?? 0;
+    return `
+      <div class="notion-row notion-row-slim">
+        <span class="notion-name">${n.label || n.notion_name || n.name || ''}</span>
+        <div class="notion-stars-row">
+          ${nstars(fl, fl, 5)}
+          <span class="notion-lv">${fl}/5</span>
+        </div>
+      </div>`;
+  }).join('')}</div>`;
 }
 
 function confLabel(c) {
