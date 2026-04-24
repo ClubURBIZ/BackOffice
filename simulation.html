@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulation Modèle Économique · NEXUS</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+  <link rel="stylesheet" href="assets/simulation.css" />
+</head>
+<body>
+
+<div class="container sim-page">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:14px">
+      <a href="index.html" class="back-link">← NEXUS</a>
+      <span class="brand">Simulation Modèle Économique</span>
+    </div>
+    <div style="color:var(--text-faint);font-size:0.8rem;">trajectoire-freelance.fr</div>
+  </div>
+
+  <div class="sim-layout">
+
+    <!-- ══ PANNEAU CONFIG ══ -->
+    <aside class="sim-config card">
+
+      <div class="sim-panel-title">Configuration</div>
+
+      <!-- Identité -->
+      <div class="sim-section">
+        <div class="sim-sec-label">Identité du Membre</div>
+        <div class="sim-row2">
+          <label class="sim-field-label">
+            <span>Prénom</span>
+            <input type="text" id="f-prenom" value="Jean" class="sim-text-in" autocomplete="off" />
+          </label>
+          <label class="sim-field-label">
+            <span>Nom</span>
+            <input type="text" id="f-nom" value="DUPONT" class="sim-text-in" autocomplete="off" />
+          </label>
+        </div>
+      </div>
+
+      <!-- Label de confiance -->
+      <div class="sim-section">
+        <div class="sim-sec-label">Label de Confiance</div>
+        <div class="sim-trust-grp">
+          <label class="sim-trust-opt">
+            <input type="radio" name="trust" value="INITIAL" checked />
+            <span class="stb stb-initial">INITIAL</span>
+          </label>
+          <label class="sim-trust-opt">
+            <input type="radio" name="trust" value="PREMIUM" />
+            <span class="stb stb-premium">PREMIUM</span>
+          </label>
+          <label class="sim-trust-opt">
+            <input type="radio" name="trust" value="ELITE" />
+            <span class="stb stb-elite">ELITE</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Région -->
+      <div class="sim-section">
+        <div class="sim-sec-label">Région</div>
+        <div class="sim-region-grp">
+          <button id="btn-paris" class="sim-rgn-btn active" onclick="setRegion('paris')">🗼 Île-de-France</button>
+          <button id="btn-province" class="sim-rgn-btn" onclick="setRegion('province')">🌿 Province</button>
+        </div>
+      </div>
+
+      <!-- TJ BRUT -->
+      <div class="sim-section">
+        <div class="sim-sec-label">TJ BRUT <small>€ HT · jour</small></div>
+        <div class="sim-tj-wrap">
+          <input type="number" id="f-tj" value="500" min="0" step="10" class="sim-tj-in" />
+          <span class="sim-tj-unit">€ / jour</span>
+        </div>
+      </div>
+
+      <!-- Markup URBIZ -->
+      <div class="sim-section">
+        <div class="sim-sec-label">Markup URBIZ <em class="sim-auto-badge">auto · modifiable</em></div>
+        <div class="sim-row2">
+          <label class="sim-field-label">
+            <span>Part URBIZ</span>
+            <div class="sim-pct-grp">
+              <input type="number" id="f-mu" value="15" min="0" max="100" step="0.5" class="sim-pct-in" />
+              <span>%</span>
+            </div>
+          </label>
+          <label class="sim-field-label">
+            <span>Variable</span>
+            <div class="sim-pct-grp">
+              <input type="number" id="f-mv" value="5" min="0" max="100" step="0.5" class="sim-pct-in" />
+              <span>%</span>
+            </div>
+          </label>
+        </div>
+        <div class="sim-total-line">Total markup : <strong id="out-total-mu">20 %</strong></div>
+      </div>
+
+      <!-- Service Club -->
+      <div class="sim-section">
+        <div class="sim-sec-label">Service Club <em class="sim-auto-badge">modifiable</em></div>
+        <div class="sim-row2">
+          <label class="sim-field-label">
+            <span>Commissionnaire</span>
+            <div class="sim-pct-grp">
+              <input type="number" id="f-pc" value="1" min="0" max="10" step="0.5" class="sim-pct-in" />
+              <span>%</span>
+            </div>
+          </label>
+          <label class="sim-field-label">
+            <span>Entremetteur</span>
+            <div class="sim-pct-grp">
+              <input type="number" id="f-pe" value="1" min="0" max="10" step="0.5" class="sim-pct-in" />
+              <span>%</span>
+            </div>
+          </label>
+          <label class="sim-field-label" id="parrain-field">
+            <span>Parrain <small id="parrain-note">Premium / Elite</small></span>
+            <div class="sim-pct-grp">
+              <input type="number" id="f-pp" value="0" min="0" max="10" step="0.5" class="sim-pct-in" disabled />
+              <span>%</span>
+            </div>
+          </label>
+          <label class="sim-field-label">
+            <span>Ambassadeur</span>
+            <div class="sim-pct-grp">
+              <input type="number" id="f-pa" value="1" min="0" max="10" step="0.5" class="sim-pct-in" />
+              <span>%</span>
+            </div>
+          </label>
+        </div>
+        <div class="sim-total-line">Service Club total : <strong id="out-total-sc">3 %</strong></div>
+      </div>
+
+      <button class="primary-btn sim-reset-btn" onclick="resetSim()">↺ Réinitialiser les valeurs</button>
+    </aside>
+
+    <!-- ══ PANNEAU PRÉVISUALISATION ══ -->
+    <div class="sim-preview">
+      <div class="sim-preview-bar">
+        <span>Aperçu fiche mission</span>
+        <button class="sim-print-btn" onclick="window.print()">⎙ Imprimer</button>
+      </div>
+      <div id="sim-fiche"></div>
+    </div>
+
+  </div>
+</div>
+
+<script src="assets/simulation.js"></script>
+</body>
+</html>
