@@ -9,15 +9,25 @@ const AREAS = { A:'Planifier', B:'Développer', C:'Gérer', D:'Exploiter', E:'Fa
 const TECH_COLORS = {
   langage:         { bg:'rgba(0,212,170,0.12)',  border:'rgba(0,212,170,0.35)',  text:'#00d4aa' },
   framework:       { bg:'rgba(61,90,254,0.12)',  border:'rgba(61,90,254,0.35)',  text:'#7c9dff' },
-  base_de_données: { bg:'rgba(171,71,188,0.12)', border:'rgba(171,71,188,0.35)', text:'#ce93d8' },
+  base_de_donnees: { bg:'rgba(171,71,188,0.12)', border:'rgba(171,71,188,0.35)', text:'#ce93d8' },
   methodologie:    { bg:'rgba(255,152,0,0.12)',  border:'rgba(255,152,0,0.35)',  text:'#ffb74d' },
   outil:           { bg:'rgba(233,30,99,0.12)',  border:'rgba(233,30,99,0.35)',  text:'#f48fb1' },
-  cloud:           { bg:'rgba(3,169,244,0.12)',  border:'rgba(3,169,244,0.35)',  text:'#81d4fa' }
+  cloud:           { bg:'rgba(3,169,244,0.12)',  border:'rgba(3,169,244,0.35)',  text:'#81d4fa' },
+  autre:           { bg:'rgba(255,255,255,0.06)', border:'rgba(255,255,255,0.2)', text:'rgba(255,255,255,0.72)' }
 };
 const TECH_LABEL_FR = {
-  langage:'Langages', framework:'Frameworks', base_de_données:'Bases de données',
-  methodologie:'Méthodologies', outil:'Outils', cloud:'Cloud'
+  langage:'Langages', framework:'Frameworks', base_de_donnees:'Bases de donn\u00e9es',
+  methodologie:'M\u00e9thodologies', outil:'Outils', cloud:'Cloud', autre:'Autres'
 };
+
+/* Normalise a tech category key: strip accents, lowercase, spaces→_ */
+function techKey(s) {
+  return String(s).toLowerCase()
+    .replace(/[éèêë]/g,'e').replace(/[àâä]/g,'a')
+    .replace(/[ùûü]/g,'u').replace(/[ôö]/g,'o')
+    .replace(/[îï]/g,'i').replace(/ç/g,'c')
+    .replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
+}
 
 const LOAD_STEPS = [
   'Extraction du CV brut via MISTRAL…',
@@ -347,14 +357,15 @@ function renderTechNotionsSection(tech, notions) {
   el.style.display = 'flex';
 }
 
-/* Normalise tech_stack into { category: [items] } regardless of input shape */
+/* Normalise tech_stack into { normalizedCategory: [items] } regardless of input shape */
 function normalizeTechStack(tech) {
-  /* Shape 1: { items: [{ name, level, category? }, ...] } */
+  /* Shape 1: { items: [...] } or { total:N, items: [...] } — flat list with category per item */
   if (Array.isArray(tech.items)) {
     const grouped = {};
     tech.items.forEach(item => {
-      const cat = (typeof item === 'object' ? (item.category || item.type || 'autre') : 'autre')
-        .toLowerCase().replace(/\s+/g, '_');
+      const rawCat = typeof item === 'object'
+        ? (item.category || item.categorie || item.type || item.famille || 'autre') : 'autre';
+      const cat = techKey(rawCat);
       (grouped[cat] = grouped[cat] || []).push(item);
     });
     return grouped;
@@ -362,22 +373,28 @@ function normalizeTechStack(tech) {
   /* Shape 2: { langage: [...] } or { langage: { items: [...] } } */
   const grouped = {};
   Object.keys(tech).forEach(key => {
+    if (key === 'total' || key === 'count') return;
     const val = tech[key];
-    if (Array.isArray(val) && val.length)                        grouped[key] = val;
-    else if (val && Array.isArray(val.items) && val.items.length) grouped[key] = val.items;
+    const nk  = techKey(key);
+    if (Array.isArray(val) && val.length)                         grouped[nk] = val;
+    else if (val && Array.isArray(val.items) && val.items.length) grouped[nk] = val.items;
   });
   return grouped;
 }
 
 function renderTechGroups(grouped) {
   return Object.keys(grouped).map(key => {
-    const c = TECH_COLORS[key] || { bg:'rgba(255,255,255,0.06)', border:'rgba(255,255,255,0.2)', text:'rgba(255,255,255,0.72)' };
+    const c = TECH_COLORS[key] || TECH_COLORS.autre;
     const pills = grouped[key].map(item => {
-      const nm    = typeof item === 'string' ? item : (item.name || item.label || item.title || '');
+      /* Support French field names: nom/name, maitrise/niveau/level */
+      const nm    = typeof item === 'string' ? item
+        : (item.name || item.nom || item.label || item.titre || item.title || '');
       if (!nm) return '';
-      const level = typeof item === 'object' ? (item.level ?? item.proficiency ?? null) : null;
+      const level = typeof item === 'object'
+        ? (item.level ?? item.maitrise ?? item.niveau ?? item.proficiency ?? null) : null;
       const opa   = level != null ? Math.max(0.45, level / 5) : 1;
-      return `<span class="tech-pill" style="--tc-bg:${c.bg};--tc-border:${c.border};--tc-text:${c.text};opacity:${opa}" title="${nm}${level != null ? ' · ' + level + '/5' : ''}">${nm}</span>`;
+      const lvBadge = level != null ? `<span class="tech-pill-lv">${level}</span>` : '';
+      return `<span class="tech-pill" style="--tc-bg:${c.bg};--tc-border:${c.border};--tc-text:${c.text};opacity:${opa}" title="${nm}${level != null ? ' · ' + level + '/5' : ''}">${nm}${lvBadge}</span>`;
     }).filter(Boolean).join('');
     if (!pills) return '';
     return `
@@ -550,29 +567,24 @@ function levelDots(n, total, cls) {
 
 function toggleSkill(head) { head.closest('.skill-card').classList.toggle('open'); }
 
-/* ── NOTIONS ── */
+/* ── NOTIONS (per-profile: candidat + chevron cible) ── */
 function renderNotions(notions) {
   if (!notions || !notions.length) return '<p class="empty-state">Non disponible</p>';
   return `<div class="notions-list">${notions.map(n => {
     const fl = n.freelance_level ?? n.freelance ?? 0;
     const el = n.expected_level  ?? n.expected  ?? 0;
     const ok = fl >= el;
+    const target = el > 0
+      ? `<span class="notion-target ${ok ? 'nt-ok' : 'nt-gap'}" title="Attendu : ${el}/5">▾${el}</span>`
+      : '';
     return `
       <div class="notion-row">
         <span class="notion-name">${n.label || n.notion_name || n.name || ''}</span>
-        <div class="notion-stars-wrap">
-          <div class="notion-stars-row">
-            <span class="notion-stars-lbl">Candidat</span>
-            ${nstars(fl, el, 5)}
-            <span class="notion-lv">${fl}/5</span>
-          </div>
-          <div class="notion-stars-row">
-            <span class="notion-stars-lbl">Attendu</span>
-            ${nstars(el, el, 5)}
-            <span class="notion-lv">${el}/5</span>
-          </div>
+        <div class="notion-stars-row">
+          ${nstars(fl, el, 5)}
+          <span class="notion-lv">${fl}/5</span>
+          ${target}
         </div>
-        <span class="notion-badge ${ok ? 'n-ok' : 'n-gap'}">${ok ? '✓' : '△'}</span>
       </div>`;
   }).join('')}</div>`;
 }

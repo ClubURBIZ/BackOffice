@@ -1077,37 +1077,45 @@ a:hover { text-decoration: underline; }
    P3 / P4  —  NOTIONS TRANSVERSALES
    ══════════════════════════════════════════════════ */
 
-.notions-list { display: flex; flex-direction: column; gap: 7px; }
+.notions-list { display: flex; flex-direction: column; gap: 4px; }
 
 .notion-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  border-radius: 8px;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 7px;
   background: rgba(255,255,255,0.03);
-  flex-wrap: wrap;
 }
 
 .notion-name {
   flex: 1;
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   color: var(--text-soft);
-  min-width: 120px;
+  min-width: 100px;
 }
 
-.notion-stars-wrap { display: flex; flex-direction: column; gap: 3px; }
+.notion-stars-row { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
 
-.notion-stars-row { display: flex; align-items: center; gap: 5px; }
+.notion-lv { font-size: 0.63rem; color: var(--text-faint); width: 22px; text-align: right; flex-shrink: 0; }
 
-.notion-stars-lbl { font-size: 0.62rem; color: var(--text-faint); width: 50px; flex-shrink: 0; }
+/* Chevron target indicator — shows expected level inline */
+.notion-target {
+  font-size: 0.63rem;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 4px;
+  margin-left: 2px;
+  flex-shrink: 0;
+  cursor: default;
+}
+.nt-ok  { color: #6ff7cf; background: rgba(111,247,207,0.12); }
+.nt-gap { color: #ffa726; background: rgba(255,152,0,0.12);   }
 
-.notion-lv { font-size: 0.65rem; color: var(--text-faint); width: 20px; text-align: right; }
-
-.star { font-size: 0.9rem; line-height: 1; }
+.star { font-size: 0.85rem; line-height: 1; }
 .star-filled { color: var(--teal); }
 .star-gap    { color: #ff9800; }
-.star-empty  { color: rgba(255,255,255,0.15); }
+.star-empty  { color: rgba(255,255,255,0.14); }
 
 .notion-badge { padding: 2px 8px; border-radius: 999px; font-size: 0.65rem; font-weight: 700; }
 .n-ok  { background: rgba(111,247,207,0.1); color: #6ff7cf; }
@@ -1296,6 +1304,16 @@ a:hover { text-decoration: underline; }
   white-space: nowrap;
   transition: opacity 0.2s;
   cursor: default;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tech-pill-lv {
+  font-size: 0.6rem;
+  font-weight: 900;
+  opacity: 0.75;
+  line-height: 1;
 }
 
 /* ══════════════════════════════════════════════════
@@ -1425,7 +1443,6 @@ a:hover { text-decoration: underline; }
   .prof-header { flex-direction: column; }
   .ph-right { flex-direction: row; gap: 16px; align-items: center; }
 
-  .notion-row { flex-direction: column; align-items: flex-start; }
 
   .ctabs { flex-direction: column; }
   .ctab { width: 100%; }
