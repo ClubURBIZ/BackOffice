@@ -199,6 +199,9 @@ function renderP34(raw) {
   document.getElementById('cvResult').style.display = 'block';
   renderProfile(0);
   document.querySelectorAll('.accordion').forEach(a => a.classList.remove('open'));
+  _allAccOpen = false;
+  const cab = document.getElementById('collapseAllBtn');
+  if (cab) cab.innerHTML = '&#9660; Tout ouvrir';
 }
 
 /* Helper: get first non-null value from a list of possible field names */
@@ -211,6 +214,9 @@ function selectProfile(idx) {
   document.querySelectorAll('.prof-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
   renderProfile(idx);
   document.querySelectorAll('.accordion').forEach(a => a.classList.remove('open'));
+  _allAccOpen = false;
+  const cab = document.getElementById('collapseAllBtn');
+  if (cab) cab.innerHTML = '&#9660; Tout ouvrir';
 }
 
 function renderProfile(idx) {
@@ -650,3 +656,11 @@ function nstars(filled, threshold, total) {
 
 /* ── ACCORDION ── */
 function toggleAcc(h) { h.closest('.accordion').classList.toggle('open'); }
+
+let _allAccOpen = false;
+function toggleAllAccordions() {
+  _allAccOpen = !_allAccOpen;
+  document.querySelectorAll('.accordion').forEach(a => a.classList.toggle('open', _allAccOpen));
+  const btn = document.getElementById('collapseAllBtn');
+  if (btn) btn.innerHTML = _allAccOpen ? '&#9650; Tout fermer' : '&#9660; Tout ouvrir';
+}
