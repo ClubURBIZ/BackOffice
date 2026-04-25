@@ -357,10 +357,12 @@ function renderTechNotionsSection(tech, notions) {
 
   const legend = hasTech ? `
     <div class="tech-legend">
-      <span class="tech-legend-dot" style="opacity:1">●</span><span>Maîtrisé</span>
-      <span class="tech-legend-dot" style="opacity:0.6">●</span><span>Intermédiaire</span>
-      <span class="tech-legend-dot" style="opacity:0.45">●</span><span>Notions</span>
+      <span class="tl-pill">★★★</span><span>Maîtrisé</span>
+      <span class="tl-pill">★★</span><span>Avancé</span>
+      <span class="tl-pill">★</span><span>Pratique</span>
+      <span class="tl-pill">◐</span><span>Notions</span>
     </div>` : '';
+  const notionsLegend = `<div class="notions-legend"><span class="nl-chev nt-ok">▾</span> niveau requis · <span class="nl-chev nt-gap">▾</span> niveau non atteint</div>`;
 
   const el = qs('techNotionsSection');
   el.innerHTML = `
@@ -370,6 +372,7 @@ function renderTechNotionsSection(tech, notions) {
     </div>
     <div class="card tn-col">
       <div class="tn-title">Notions Transversales</div>
+      ${notionsLegend}
       <div id="notionsGlobalContent">
         ${hasNotions ? renderFreelanceNotions(notions) : '<p class="empty-state">Non disponible</p>'}
       </div>
@@ -610,14 +613,12 @@ function renderNotions(notions) {
     const fl = n.freelance_level ?? n.freelance ?? 0;
     const el = n.expected_level  ?? n.expected  ?? 0;
     const ok = fl >= el;
-    const warn = (!ok && el > 0) ? `<span class="notion-target nt-gap" title="Attendu : ${el}/5">▾${el}</span>` : '';
     return `
       <div class="notion-row">
         <span class="notion-name">${n.label || n.notion_name || n.name || ''}</span>
         <div class="notion-stars-row">
           ${nstarsWithTarget(fl, el, 5)}
           <span class="notion-lv">${fl}/5</span>
-          ${warn}
         </div>
       </div>`;
   }).join('')}</div>`;

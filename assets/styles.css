@@ -1125,8 +1125,8 @@ a:hover { text-decoration: underline; }
   flex-shrink: 0;
   cursor: default;
 }
-.nt-ok  { color: #6ff7cf; background: rgba(111,247,207,0.12); }
-.nt-gap { color: #ffa726; background: rgba(255,152,0,0.12);   }
+.nt-ok  { color: #6ff7cf; }
+.nt-gap { color: #ffa726; }
 
 .star { font-size: 0.85rem; line-height: 1; }
 .star-filled { color: var(--teal); }
@@ -1297,7 +1297,7 @@ a:hover { text-decoration: underline; }
   display: flex;
   gap: 14px;
   margin-bottom: 18px;
-  align-items: flex-start;
+  align-items: stretch;
 }
 
 .tn-col {
@@ -1306,6 +1306,37 @@ a:hover { text-decoration: underline; }
   margin-bottom: 0 !important;
 }
 
+
+.notions-legend {
+  font-size: 0.62rem;
+  color: var(--text-faint);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.nl-chev {
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+.tl-pill {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  background: rgba(255,255,255,0.06);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+.tech-legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  font-size: 0.62rem;
+  color: var(--text-faint);
+}
 .tn-title {
   font-size: 0.66rem;
   font-weight: 700;
@@ -1435,17 +1466,6 @@ a:hover { text-decoration: underline; }
 
 /* ── TECH LEGEND ── */
 
-.tech-legend {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px solid rgba(255,255,255,0.06);
-  flex-wrap: wrap;
-}
-
-.tech-legend span { font-size: 0.62rem; color: var(--text-faint); }
 .tech-legend-dot  { font-size: 0.7rem; color: var(--text-soft); }
 
 /* ── SLIM NOTION ROW (candidat only) ── */
