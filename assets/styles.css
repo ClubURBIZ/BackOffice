@@ -1111,7 +1111,7 @@ a:hover { text-decoration: underline; }
   justify-content: center;
 }
 .star-target-empty { visibility: hidden; }
-.star-neutral { color: rgba(255,255,255,0.25); }
+.star-neutral { color: rgba(255,255,255,0.70); }
 
 .notion-lv { font-size: 0.63rem; color: var(--text-faint); width: 22px; text-align: right; flex-shrink: 0; }
 
