@@ -1556,6 +1556,81 @@ a:hover { text-decoration: underline; }
    PRINT / PDF EXPORT
    ══════════════════════════════════════════════════ */
 
+
+/* ══════════════════════════════════════════════════
+   V5 — SOURCE DISTINCTION (cv_detected vs referential_only)
+   ══════════════════════════════════════════════════ */
+
+/* Referential-only skill cards: subtle but legible */
+.skill-card.ref-only {
+  border-color: rgba(255,152,0,0.2) !important;
+  background: rgba(255,255,255,0.012) !important;
+}
+.skill-card.ref-only .sk-name {
+  color: rgba(255,255,255,0.52);
+}
+.skill-card.ref-only .sk-code {
+  color: rgba(255,255,255,0.35);
+}
+.skill-card.ref-only .sk-chev {
+  color: rgba(255,255,255,0.3);
+}
+
+/* "Manquant" tag on referential-only skills */
+.ref-tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: rgba(255,152,0,0.13);
+  border: 1px solid rgba(255,152,0,0.32);
+  color: #ffb74d;
+  border-radius: 4px;
+  padding: 1px 6px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+/* Badge style for ref-only in summary */
+.cbadge.c-ref {
+  background: rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.4);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+/* Candidate absent label */
+.lv-absent {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.32);
+  font-style: italic;
+}
+
+/* Activity/deliverable coverage header */
+.act-coverage {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.act-cov-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 3px 11px;
+  border-radius: 6px;
+}
+.cov-ok {
+  background: rgba(0,212,170,0.11);
+  color: #00d4aa;
+  border: 1px solid rgba(0,212,170,0.25);
+}
+.cov-gap {
+  background: rgba(255,152,0,0.11);
+  color: #ffb74d;
+  border: 1px solid rgba(255,152,0,0.25);
+}
+
 @media print {
   @page {
     size: A4 portrait;

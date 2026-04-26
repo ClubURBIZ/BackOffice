@@ -285,8 +285,8 @@ function renderProfile(idx) {
       : (allNotions.length ? renderFreelanceNotions(allNotions) : '<p class="empty-state">Non disponible</p>');
   }
 
-  qs('secMission').innerHTML      = renderMission(p.mission);
-  qs('secActivities').innerHTML   = renderActivities((p.activities && p.activities.items) || (Array.isArray(p.activities) ? p.activities : []));
+  qs('secMission').innerHTML      = renderMission(p.mission, p.deliverables);
+  qs('secActivities').innerHTML   = renderActivities(p.activities || []);
   qs('secCompetencies').innerHTML = renderCompetencies((p.competencies && p.competencies.items) || (Array.isArray(p.competencies) ? p.competencies : []));
 }
 
@@ -457,11 +457,29 @@ function confLabel(c) {
 }
 
 /* ── MISSION ── */
-function renderMission(m) {
+function renderMission(m, deliverables) {
   if (!m) return '<p class="empty-state">Non disponible</p>';
   const score = pval(m, ['score','matching_score','score_mission']);
   const text  = m.text || m.description || m.summary || m.contexte || '';
-  const dl    = m.deliverables || m.livrables || [];
+
+  // V5: deliverables is a separate object with items[]
+  const dlObj    = deliverables || {};
+  const dlItems  = dlObj.items || m.deliverables || m.livrables || [];
+  const dlCov    = dlObj.cv_covered_count != null ? dlObj.cv_covered_count : null;
+  const dlTotal  = dlObj.total || dlItems.length;
+  const dlNotCov = dlObj.cv_not_covered_count || 0;
+
+  const dlCovHtml = dlCov != null
+    ? `<div class="act-coverage">
+        <span class="act-cov-badge cov-ok">${dlCov}/${dlTotal} couverts par le CV</span>
+        ${dlNotCov > 0 ? `<span class="act-cov-badge cov-gap">${dlNotCov} non couverts</span>` : ''}
+       </div>` : '';
+
+  const dlListHtml = dlItems.length
+    ? `<div class="mt-block-label">Livrables</div>
+       ${dlCovHtml}
+       <ul class="item-list">${dlItems.map(d => `<li>${typeof d === 'object' ? d.title : d}</li>`).join('')}</ul>`
+    : '';
 
   return [
     score != null ? `
@@ -471,20 +489,33 @@ function renderMission(m) {
       </div>
       <div class="prog-bar"><div class="prog-fill" style="width:${score}%"></div></div>` : '',
     text  ? `<p class="ms-text">${text}</p>` : '',
-    dl.length ? `
-      <div class="mt-block-label">Livrables</div>
-      <ul class="item-list">${dl.map(d => `<li>${d}</li>`).join('')}</ul>` : ''
+    dlListHtml
   ].join('');
 }
 
 /* ── ACTIVITIES ── */
-function renderActivities(acts) {
-  if (!acts.length) return '<p class="empty-state">Non disponible</p>';
-  return acts.map(a => `
-    <div class="act-block">
+function renderActivities(actsData) {
+  const items   = Array.isArray(actsData) ? actsData : (actsData.items || []);
+  if (!items.length) return '<p class="empty-state">Non disponible</p>';
+
+  const covered  = actsData.cv_covered_count != null ? actsData.cv_covered_count : null;
+  const total    = actsData.total || items.length;
+  const notCov   = actsData.cv_not_covered_count || 0;
+
+  const covHtml = covered != null
+    ? `<div class="act-coverage">
+        <span class="act-cov-badge cov-ok">${covered}/${total} couvertes par le CV</span>
+        ${notCov > 0 ? `<span class="act-cov-badge cov-gap">${notCov} non couvertes</span>` : ''}
+       </div>` : '';
+
+  return covHtml + items.map(a => {
+    const isRef = a.source === 'referential' && covered != null;
+    return `
+    <div class="act-block${isRef && notCov > 0 ? ' act-ref' : ''}">
       <div class="act-title">${a.title || a.activity_title || a.activity || a.nom || ''}</div>
       <ul class="item-list">${(a.tasks || a.taches || []).map(t => `<li>${t}</li>`).join('')}</ul>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 /* ── COMPETENCIES ── */
@@ -500,10 +531,12 @@ function renderCompetencies(comps) {
   const first   = letters[0];
 
   const summary = comps.map(c => {
-    const fl  = c.cv_estimated_level ?? c.freelance_level ?? 0;
+    const isRef = c.cv_origin === 'referential_only';
+    const fl  = isRef ? 0 : (c.cv_estimated_level ?? c.freelance_level ?? 0);
     const rl  = c.expected_level ?? c.required_level ?? 0;
     const g   = fl - rl;
-    const cls = c.status === 'strong' ? 'c-strong' : c.status === 'adequate' ? 'c-adequate' : c.status === 'missing' ? 'c-weak' : (g >= 0 ? 'c-strong' : (g >= -1 ? 'c-adequate' : 'c-weak'));
+    const cls = isRef ? 'c-ref' :
+                (c.status === 'strong' ? 'c-strong' : c.status === 'adequate' ? 'c-adequate' : c.status === 'missing' ? 'c-weak' : (g >= 0 ? 'c-strong' : (g >= -1 ? 'c-adequate' : 'c-weak')));
     return `<span class="cbadge ${cls}">${c.code || c.title || c.name}</span>`;
   }).join('');
 
@@ -532,22 +565,28 @@ function switchComp(btn, letter) {
 }
 
 function renderSkill(s) {
-  const fl  = s.cv_estimated_level ?? s.freelance_level ?? 0;
+  const isRef = s.cv_origin === 'referential_only';
+  const fl  = isRef ? 0 : (s.cv_estimated_level ?? s.freelance_level ?? 0);
   const rl  = s.expected_level ?? s.required_level ?? 0;
-  const g   = fl - rl;
-  const cls = g >= 0 ? 'c-strong' : (g >= -1 ? 'c-adequate' : 'c-weak');
-  const gtxt = g >= 0 ? `+${g}` : `${g}`;
+  const g   = isRef ? -rl : (fl - rl);
+  const cls = isRef ? 'c-ref' : (g >= 0 ? 'c-strong' : (g >= -1 ? 'c-adequate' : 'c-weak'));
+  const gtxt = isRef ? 'Absent' : (g >= 0 ? `+${g}` : `${g}`);
   const skillName = s.title || s.name || s.skill_name || '';
   const skillDesc = s.skill_description || s.description || '';
   const knowledge = (s.knowledge || []).map(k => typeof k === 'object' ? k.description : k).filter(Boolean);
   const abilities = (s.abilities || []).map(a => typeof a === 'object' ? a.description : a).filter(Boolean);
 
+  const candidatRow = isRef
+    ? `<div class="lv-row"><span class="lv-lbl">Candidat</span><span class="lv-absent">Non identifié dans le CV</span></div>`
+    : `<div class="lv-row"><span class="lv-lbl">Candidat</span><div class="dots-row">${levelDots(fl, 5, 'dot-teal')}</div><span class="lv-num">${fl}/5</span></div>`;
+
   return `
-    <div class="skill-card">
+    <div class="skill-card${isRef ? ' ref-only' : ''}">
       <div class="sk-head" onclick="toggleSkill(this)">
         <div class="sk-info">
           <span class="sk-code">${s.code || ''}</span>
           <span class="sk-name">${skillName}</span>
+          ${isRef ? '<span class="ref-tag">Manquant</span>' : ''}
         </div>
         <div class="sk-right">
           <div class="dots-row">${ldots(fl, rl, 5)}</div>
@@ -557,11 +596,7 @@ function renderSkill(s) {
       </div>
       <div class="sk-body">
         <div class="sk-body-inner">
-          <div class="lv-row">
-            <span class="lv-lbl">Candidat</span>
-            <div class="dots-row">${levelDots(fl, 5, 'dot-teal')}</div>
-            <span class="lv-num">${fl}/5</span>
-          </div>
+          ${candidatRow}
           <div class="lv-row">
             <span class="lv-lbl">Requis</span>
             <div class="dots-row">${levelDots(rl, 5, 'dot-blue')}</div>
