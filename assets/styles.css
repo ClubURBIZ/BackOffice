@@ -1557,6 +1557,41 @@ a:hover { text-decoration: underline; }
    ══════════════════════════════════════════════════ */
 
 
+
+/* ── COMPETENCY STATS ROW ── */
+.comp-stats {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.cs-badge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 6px;
+}
+.cs-detected { background: rgba(0,212,170,0.1);  color: #00d4aa; border: 1px solid rgba(0,212,170,0.25); }
+.cs-missing  { background: rgba(255,152,0,0.1);  color: #ffb74d; border: 1px solid rgba(255,152,0,0.25); }
+.cs-strong   { background: rgba(61,90,254,0.1);  color: #7c9dff; border: 1px solid rgba(61,90,254,0.25); }
+.cs-weak     { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.45); border: 1px solid rgba(255,255,255,0.1); }
+
+/* ── SKILL CARD: stars in header ── */
+.sk-right .notion-stars-row {
+  gap: 2px;
+}
+.sk-stars-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+}
+.sk-lv-frac {
+  font-size: 0.72rem;
+  color: var(--text-faint);
+  min-width: 24px;
+}
+
 /* ══════════════════════════════════════════════════
    V5 — SOURCE DISTINCTION (cv_detected vs referential_only)
    ══════════════════════════════════════════════════ */

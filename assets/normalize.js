@@ -286,8 +286,10 @@ function renderProfile(idx) {
   }
 
   qs('secMission').innerHTML      = renderMission(p.mission, p.deliverables);
-  qs('secActivities').innerHTML   = renderActivities(p.activities || []);
-  qs('secCompetencies').innerHTML = renderCompetencies((p.competencies && p.competencies.items) || (Array.isArray(p.competencies) ? p.competencies : []));
+  qs('secActivities').innerHTML   = renderActivities(p.activities || [], d2);
+  qs('secCompetencies').innerHTML = renderCompetencies(
+    (p.competencies && p.competencies.items) || (Array.isArray(p.competencies) ? p.competencies : []),
+    d1, p.competencies);
 }
 
 /* ── FREELANCE IDENTITY CARD ── */
@@ -494,13 +496,21 @@ function renderMission(m, deliverables) {
 }
 
 /* ── ACTIVITIES ── */
-function renderActivities(actsData) {
+function renderActivities(actsData, d2Score) {
   const items   = Array.isArray(actsData) ? actsData : (actsData.items || []);
   if (!items.length) return '<p class="empty-state">Non disponible</p>';
 
   const covered  = actsData.cv_covered_count != null ? actsData.cv_covered_count : null;
   const total    = actsData.total || items.length;
   const notCov   = actsData.cv_not_covered_count || 0;
+  const d2       = d2Score != null ? Math.round(d2Score) : null;
+
+  const scoreHtml = d2 != null ? `
+      <div class="ms-score-row">
+        <span class="ms-score-lbl">Score D2 · Pratique</span>
+        <span class="ms-score-val">${d2}%</span>
+      </div>
+      <div class="prog-bar"><div class="prog-fill" style="width:${d2}%"></div></div>` : '';
 
   const covHtml = covered != null
     ? `<div class="act-coverage">
@@ -508,19 +518,38 @@ function renderActivities(actsData) {
         ${notCov > 0 ? `<span class="act-cov-badge cov-gap">${notCov} non couvertes</span>` : ''}
        </div>` : '';
 
-  return covHtml + items.map(a => {
-    const isRef = a.source === 'referential' && covered != null;
-    return `
-    <div class="act-block${isRef && notCov > 0 ? ' act-ref' : ''}">
+  return scoreHtml + covHtml + items.map(a => `
+    <div class="act-block">
       <div class="act-title">${a.title || a.activity_title || a.activity || a.nom || ''}</div>
       <ul class="item-list">${(a.tasks || a.taches || []).map(t => `<li>${t}</li>`).join('')}</ul>
-    </div>`;
-  }).join('');
+    </div>`).join('');
 }
 
 /* ── COMPETENCIES ── */
-function renderCompetencies(comps) {
+function renderCompetencies(comps, d1Score, compData) {
   if (!comps.length) return '<p class="empty-state">Non disponible</p>';
+
+  const d1      = d1Score != null ? Math.round(d1Score) : null;
+  const cvDet   = compData && compData.cv_detected   != null ? compData.cv_detected   : null;
+  const refOnly = compData && compData.referential_only != null ? compData.referential_only : null;
+  const nStrong = compData && compData.strong  != null ? compData.strong  : null;
+  const nWeak   = compData && compData.weak    != null ? compData.weak    : null;
+  const nMiss   = compData && compData.missing != null ? compData.missing : null;
+
+  const scoreHtml = d1 != null ? `
+      <div class="ms-score-row">
+        <span class="ms-score-lbl">Score D1 · Compétences</span>
+        <span class="ms-score-val">${d1}%</span>
+      </div>
+      <div class="prog-bar"><div class="prog-fill" style="width:${d1}%"></div></div>` : '';
+
+  const statsHtml = cvDet != null ? `
+      <div class="comp-stats">
+        <span class="cs-badge cs-detected">${cvDet} identifiées</span>
+        ${refOnly > 0 ? `<span class="cs-badge cs-missing">${refOnly} manquante${refOnly > 1 ? 's' : ''}</span>` : ''}
+        ${nStrong > 0 ? `<span class="cs-badge cs-strong">${nStrong} forte${nStrong > 1 ? 's' : ''}</span>` : ''}
+        ${nWeak   > 0 ? `<span class="cs-badge cs-weak">${nWeak} partielle${nWeak > 1 ? 's' : ''}</span>` : ''}
+      </div>` : '';
 
   const groups = {};
   comps.forEach(c => {
@@ -550,7 +579,7 @@ function renderCompetencies(comps) {
       ${groups[l].map(renderSkill).join('')}
     </div>`).join('');
 
-  return `
+  return scoreHtml + statsHtml + `
     <div class="comp-summary">${summary}</div>
     <div class="ctabs">${tabs}</div>
     <div class="cpanels">${panels}</div>`;
@@ -568,17 +597,20 @@ function renderSkill(s) {
   const isRef = s.cv_origin === 'referential_only';
   const fl  = isRef ? 0 : (s.cv_estimated_level ?? s.freelance_level ?? 0);
   const rl  = s.expected_level ?? s.required_level ?? 0;
-  const g   = isRef ? -rl : (fl - rl);
-  const cls = isRef ? 'c-ref' : (g >= 0 ? 'c-strong' : (g >= -1 ? 'c-adequate' : 'c-weak'));
-  const gtxt = isRef ? 'Absent' : (g >= 0 ? `+${g}` : `${g}`);
   const skillName = s.title || s.name || s.skill_name || '';
   const skillDesc = s.skill_description || s.description || '';
   const knowledge = (s.knowledge || []).map(k => typeof k === 'object' ? k.description : k).filter(Boolean);
   const abilities = (s.abilities || []).map(a => typeof a === 'object' ? a.description : a).filter(Boolean);
 
-  const candidatRow = isRef
+  const stars = nstarsWithTarget(fl, rl, 5);
+
+  const bodyLvRow = isRef
     ? `<div class="lv-row"><span class="lv-lbl">Candidat</span><span class="lv-absent">Non identifié dans le CV</span></div>`
-    : `<div class="lv-row"><span class="lv-lbl">Candidat</span><div class="dots-row">${levelDots(fl, 5, 'dot-teal')}</div><span class="lv-num">${fl}/5</span></div>`;
+    : `<div class="lv-row sk-stars-row">
+        <span class="lv-lbl">Candidat · Requis</span>
+        <div class="notion-stars-row">${stars}</div>
+        <span class="lv-num sk-lv-frac">${fl}/${rl}</span>
+       </div>`;
 
   return `
     <div class="skill-card${isRef ? ' ref-only' : ''}">
@@ -589,19 +621,13 @@ function renderSkill(s) {
           ${isRef ? '<span class="ref-tag">Manquant</span>' : ''}
         </div>
         <div class="sk-right">
-          <div class="dots-row">${ldots(fl, rl, 5)}</div>
-          <span class="cbadge ${cls}">${gtxt}</span>
-          <span class="sk-chev">▾</span>
+          <div class="notion-stars-row">${stars}</div>
+          <span class="sk-chev">&#9662;</span>
         </div>
       </div>
       <div class="sk-body">
         <div class="sk-body-inner">
-          ${candidatRow}
-          <div class="lv-row">
-            <span class="lv-lbl">Requis</span>
-            <div class="dots-row">${levelDots(rl, 5, 'dot-blue')}</div>
-            <span class="lv-num">${rl}/5</span>
-          </div>
+          ${bodyLvRow}
           ${skillDesc ? `<p class="sk-desc">${skillDesc}</p>` : ''}
           ${knowledge.length ? `
             <div class="ka-section">
